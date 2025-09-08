@@ -148,10 +148,10 @@ class AgriValahAPITester:
     def test_signup_flow(self):
         """Test signup with OTP verification"""
         # Step 1: Signup
+        email = f"testuser_{int(time.time())}@test.com"
         signup_data = {
             "name": "Test User",
-            "email": f"testuser_{int(time.time())}@test.com",
-            "phone": f"9876543{int(time.time()) % 1000:03d}",
+            "emailOrPhone": email,
             "password": "Test@123",
             "role": "customer"
         }
@@ -164,12 +164,12 @@ class AgriValahAPITester:
             
         # Step 2: Verify OTP (using mocked OTP)
         verify_data = {
-            "email": signup_data["email"],
+            "emailOrPhone": email,
             "otp": "123456"  # Mocked OTP
         }
         
         success, response = self.make_request('POST', 'auth/verify-otp', verify_data)
-        details = f"Email: {signup_data['email']}, OTP verification: {'Success' if success else 'Failed'}"
+        details = f"Email: {email}, OTP verification: {'Success' if success else 'Failed'}"
         
         self.log_test("Signup Flow - OTP Verification", success, details)
         return success
