@@ -246,7 +246,6 @@ export default function SellerSignupPage() {
       } else {
         console.log('Validation failed');
       }
-    }
     } else if (step === 2 && validateStep2()) {
       setLoading(true);
       try {
