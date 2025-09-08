@@ -420,17 +420,17 @@ class SellerRegistrationTester:
             data = response.get('data', {})
             seller_type = data.get('sellerType')
             kyc_status = data.get('kycStatus')
-            status = data.get('status')
+            is_active = data.get('isActive')
             
-            details = f"Type: {seller_type}, KYC: {kyc_status}, Status: {status}"
+            details = f"Type: {seller_type}, KYC: {kyc_status}, Active: {is_active}"
             
-            # Verify correct status values
-            expected_kyc = 'pending_approval'
-            expected_status = 'waiting_list'
+            # Verify correct values - after OTP verification, should be active with pending KYC
+            expected_kyc = 'pending'
+            expected_active = True
             
-            if kyc_status != expected_kyc or status != expected_status:
+            if kyc_status != expected_kyc or is_active != expected_active:
                 success = False
-                details += f" - Expected KYC: {expected_kyc}, Status: {expected_status}"
+                details += f" - Expected KYC: {expected_kyc}, Active: {expected_active}"
                 
         else:
             details = f"Failed to get seller profile: {response}"
