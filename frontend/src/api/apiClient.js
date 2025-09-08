@@ -84,11 +84,7 @@ export const userAPI = {
 
 // Seller API
 export const sellerAPI = {
-  initSeller: (data) => api.post('/sellers/init', data),
-  farmerDetails: (data) => api.post('/sellers/step/farmer', data),
-  resellerDetails: (data) => api.post('/sellers/step/reseller', data),
-  startupDetails: (data) => api.post('/sellers/step/startup', data),
-  serviceProviderDetails: (data) => api.post('/sellers/step/service-provider', data),
+  register: (data) => api.post('/sellers/register', data), // Single endpoint for all seller data
   verifyOTP: (data) => api.post('/sellers/verify-otp', data),
   sendOTP: (data) => api.post('/sellers/send-otp', data),
   getProfile: (id) => api.get(`/sellers/${id}`),
