@@ -176,14 +176,14 @@ class AgriValahAPITester:
 
     def test_token_refresh(self):
         """Test token refresh functionality"""
-        if not self.customer_token:
-            self.log_test("Token Refresh", False, "No customer token available")
+        if not hasattr(self, 'refresh_token') or not self.refresh_token:
+            self.log_test("Token Refresh", False, "No refresh token available")
             return False
             
-        success, response = self.make_request('POST', 'auth/refresh', 
-                                            token=self.customer_token)
+        refresh_data = {"refreshToken": self.refresh_token}
+        success, response = self.make_request('POST', 'auth/refresh', refresh_data)
         
-        if success and 'token' in response:
+        if success and ('token' in response or 'accessToken' in response):
             details = "New token received"
         else:
             details = f"Response: {response}"
