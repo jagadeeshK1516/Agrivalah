@@ -859,11 +859,20 @@ export default function SellerSignupPage() {
                 )}
 
                 <div className="flex justify-between">
-                  <Button variant="outline" onClick={() => setStep(1)}>
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    onClick={() => setStep(1)}
+                  >
                     <ArrowLeft className="w-4 h-4 mr-2" /> Back
                   </Button>
-                  <Button onClick={handleNext} className="bg-gradient-to-r from-green-600 to-emerald-600">
-                    Get OTP <ArrowRight className="w-4 h-4 ml-2" />
+                  <Button 
+                    type="button"
+                    onClick={handleNext} 
+                    className="bg-gradient-to-r from-green-600 to-emerald-600"
+                    disabled={loading}
+                  >
+                    {loading ? 'Processing...' : 'Get OTP'} <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </div>
               </form>
