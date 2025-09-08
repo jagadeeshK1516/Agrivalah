@@ -63,10 +63,13 @@ router.post('/',
       const tax = subtotal * 0.05; // 5% tax
       const total = subtotal + deliveryCharge + tax;
 
+      // Get sellerId from the first product (assuming single seller order for now)
+      const firstProduct = await Product.findById(items[0].productId);
+      
       // Create order
       const order = new Order({
         buyerId: req.user._id,
-        sellerId: orderItems[0].productId, // For now, assuming single seller
+        sellerId: firstProduct.sellerId,
         items: orderItems,
         pricing: {
           subtotal,
