@@ -298,7 +298,7 @@ export default function SellerSignupPage() {
     }
   };
 
-  const handleOTPSubmit = (e) => {
+  const handleOTPSubmit = async (e) => {
     e.preventDefault();
     if (!formData.otp || formData.otp.length !== 6) {
       setErrors({ otp: 'Please enter a valid 6-digit OTP' });
@@ -306,16 +306,24 @@ export default function SellerSignupPage() {
     }
 
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const response = await sellerAPI.verifyOTP({
+        userId: sellerId,
+        emailOrPhone: formData.email,
+        otp: formData.otp
+      });
+      
+      if (response.data.success) {
+        toast.success("Seller registration completed successfully!");
+        setStep(4); // Success step
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Invalid OTP';
+      setErrors({ otp: errorMessage });
+      toast.error(errorMessage);
+    } finally {
       setLoading(false);
-      // Save seller data to localStorage
-      localStorage.setItem('agrivalah_seller', JSON.stringify({
-        ...formData,
-        sellerType: selectedType,
-        id: Date.now()
-      }));
-      setStep(4); // Success step
-    }, 1500);
+    }
   };
 
   const handleGoToDashboard = () => {
