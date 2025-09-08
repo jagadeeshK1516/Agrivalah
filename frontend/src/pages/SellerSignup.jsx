@@ -240,6 +240,11 @@ export default function SellerSignupPage() {
           const errorMessage = error.response?.data?.message || 'Something went wrong';
           setErrors({ general: errorMessage });
           toast.error(errorMessage);
+          
+          // Show specific field errors
+          if (errorMessage.includes('already exists')) {
+            setErrors({ email: 'This email is already registered. Please use a different email.' });
+          }
         } finally {
           setLoading(false);
         }
