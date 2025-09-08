@@ -13,7 +13,12 @@ import {
   EyeOff,
   CheckCircle,
   ArrowLeft,
-  LogIn
+  LogIn,
+  CreditCard,
+  Gift,
+  Crown,
+  Coins,
+  Calculator
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -31,8 +36,9 @@ function useScrollToTop() {
 export default function AuthPage() {
   useScrollToTop();
   const navigate = useNavigate();
-  const [step, setStep] = React.useState('choice'); // 'choice', 'signup', 'login', 'otp', 'success'
+  const [step, setStep] = React.useState('choice'); // 'choice', 'signup', 'login', 'payment', 'otp', 'success'
   const [userType, setUserType] = React.useState(''); // 'customer' or 'mitra'
+  const [paymentOption, setPaymentOption] = React.useState(''); // 'subscription' or 'donation'
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [isLogin, setIsLogin] = React.useState(false);
@@ -41,7 +47,8 @@ export default function AuthPage() {
     fullName: '',
     password: '',
     confirmPassword: '',
-    otp: ''
+    otp: '',
+    paymentMethod: 'upi' // Default payment method
   });
   const [errors, setErrors] = React.useState({});
   const [loading, setLoading] = React.useState(false);
@@ -107,22 +114,60 @@ export default function AuthPage() {
           navigate(createPageUrl("Dashboard"));
         }
       } else {
-        // Signup API call
-        const response = await authAPI.signup({
-          name: formData.fullName,
-          emailOrPhone: formData.email,
-          password: formData.password,
-          role: userType
-        });
-        
-        if (response.data.success || response.data.ok) {
-          toast.success("OTP sent to your email/phone!");
-          setStep('otp');
+        // Check if customer (no payment) or mitra (needs payment)
+        if (userType === 'customer') {
+          // Direct signup for customer
+          const response = await authAPI.signup({
+            name: formData.fullName,
+            emailOrPhone: formData.email,
+            password: formData.password,
+            role: userType
+          });
+          
+          if (response.data.success || response.data.ok) {
+            toast.success("OTP sent to your email/phone!");
+            setStep('otp');
+          }
+        } else {
+          // Mitra signup - go to payment selection
+          setStep('payment');
         }
       }
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Something went wrong';
       setErrors({ general: errorMessage });
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePaymentSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    
+    try {
+      // Mock payment processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // After successful payment, create the mitra account
+      const response = await authAPI.signup({
+        name: formData.fullName,
+        emailOrPhone: formData.email,
+        password: formData.password,
+        role: userType,
+        subscriptionType: paymentOption,
+        paymentAmount: paymentOption === 'subscription' ? 12000 : 30000,
+        creditsEarned: paymentOption === 'donation' ? 9000 : 0
+      });
+      
+      if (response.data.success || response.data.ok) {
+        toast.success("Payment successful! OTP sent to your email/phone!");
+        setStep('otp');
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Payment failed';
+      setErrors({ payment: errorMessage });
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -176,7 +221,7 @@ export default function AuthPage() {
       <div className="min-h-screen py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <Badge className="bg-green-100 text-green-800 mb-4  transition-colors duration-300 hover:bg-green-600 hover:text-white">
+            <Badge className="bg-green-100 text-green-800 mb-4 transition-colors duration-300 hover:bg-green-600 hover:text-white">
               <Users className="w-4 h-4 mr-2" />
               Join AgriValah
             </Badge>
@@ -195,7 +240,8 @@ export default function AuthPage() {
                 <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                   <ShoppingCart className="w-10 h-10" />
                 </div>
-                <CardTitle className="text-2xl font-bold text-gray-900">Customer Signup</CardTitle>
+                <CardTitle className="text-2xl font-bold text-gray-900">Customer</CardTitle>
+                <Badge className="bg-blue-100 text-blue-800 mt-2">FREE</Badge>
               </CardHeader>
               <CardContent className="text-center">
                 <p className="text-gray-600 mb-4">
@@ -217,18 +263,19 @@ export default function AuthPage() {
                 <div className="w-20 h-20 bg-gradient-to-br from-pink-600 to-red-600 rounded-full flex items-center justify-center text-white mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
                   <Heart className="w-10 h-10" />
                 </div>
-                <CardTitle className="text-2xl font-bold text-gray-900">Mitra Signup</CardTitle>
+                <CardTitle className="text-2xl font-bold text-gray-900">Mitra</CardTitle>
+                <Badge className="bg-pink-100 text-pink-800 mt-2">PREMIUM</Badge>
               </CardHeader>
               <CardContent className="text-center">
                 <p className="text-gray-600 mb-4">
-                  Support farmers and get ₹54,000 worth of organic produce 
-                  for ₹42,000 investment. Clear ROI with social impact.
+                  Support farmers with subscription or donation options. 
+                  Get premium benefits and help build sustainable agriculture.
                 </p>
                 <ul className="text-sm text-gray-600 space-y-2">
-                  <li>✓ ₹12,000 net in-kind ROI</li>
-                  <li>✓ Monthly organic produce kits</li>
-                  <li>✓ Direct farmer support</li>
-                  <li>✓ Insurance protection</li>
+                  <li>✓ ₹12K/year subscription</li>
+                  <li>✓ ₹30K donation with 9K credits/month</li>
+                  <li>✓ Premium farmer support</li>
+                  <li>✓ Exclusive benefits</li>
                 </ul>
               </CardContent>
             </Card>
@@ -263,7 +310,7 @@ export default function AuthPage() {
                     {isLogin ? 'Welcome Back' : `${userType === 'mitra' ? 'Mitra' : 'Customer'} Signup`}
                   </CardTitle>
                   <p className="text-gray-600">
-                    {isLogin ? 'Login to your account' : 'Create your account to get started'}
+                    {isLogin ? 'Login to your account' : `Create your ${userType} account`}
                   </p>
                 </div>
               </div>
@@ -348,8 +395,10 @@ export default function AuthPage() {
                   </div>
                 )}
 
+                {errors.general && <p className="text-red-500 text-sm">{errors.general}</p>}
+
                 <Button type="submit" className="w-full bg-gradient-to-r from-green-600 to-emerald-600" disabled={loading}>
-                  {loading ? 'Processing...' : (isLogin ? 'Login' : 'Get OTP')}
+                  {loading ? 'Processing...' : (isLogin ? 'Login' : (userType === 'customer') ? 'Create Account' : 'Continue to Payment')}
                 </Button>
               </form>
 
@@ -360,6 +409,158 @@ export default function AuthPage() {
               </div>
             </CardContent>
           </Card>
+        </div>
+      </div>
+    );
+  }
+
+  // Mitra Payment Selection
+  if (step === 'payment') {
+    return (
+      <div className="min-h-screen py-16">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <Badge className="bg-pink-100 text-pink-800 mb-4">
+              <Heart className="w-4 h-4 mr-2" />
+              Mitra Membership
+            </Badge>
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">Choose Your Plan</h1>
+            <p className="text-xl text-gray-600">Support farmers and get exclusive benefits</p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            {/* Subscription Option */}
+            <Card className={`border-2 cursor-pointer transition-all duration-300 ${
+              paymentOption === 'subscription' 
+                ? 'border-blue-500 bg-blue-50' 
+                : 'border-gray-200 hover:border-blue-300'
+            }`}
+            onClick={() => setPaymentOption('subscription')}>
+              <CardHeader className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center text-white mx-auto mb-4">
+                  <Crown className="w-8 h-8" />
+                </div>
+                <CardTitle className="text-2xl font-bold text-gray-900">Annual Subscription</CardTitle>
+                <div className="text-4xl font-bold text-blue-600 mt-2">₹12,000</div>
+                <p className="text-gray-600">per year</p>
+              </CardHeader>
+              <CardContent className="text-center">
+                <ul className="text-sm text-gray-600 space-y-3">
+                  <li>✓ Premium organic produce access</li>
+                  <li>✓ Direct farmer partnerships</li>
+                  <li>✓ Monthly delivery guarantee</li>
+                  <li>✓ Quality assurance</li>
+                  <li>✓ Customer support priority</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Donation Option */}
+            <Card className={`border-2 cursor-pointer transition-all duration-300 ${
+              paymentOption === 'donation' 
+                ? 'border-green-500 bg-green-50' 
+                : 'border-gray-200 hover:border-green-300'
+            }`}
+            onClick={() => setPaymentOption('donation')}>
+              <CardHeader className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-green-600 to-emerald-600 rounded-full flex items-center justify-center text-white mx-auto mb-4">
+                  <Gift className="w-8 h-8" />
+                </div>
+                <CardTitle className="text-2xl font-bold text-gray-900">Farmer Support Donation</CardTitle>
+                <div className="text-4xl font-bold text-green-600 mt-2">₹30,000</div>
+                <p className="text-gray-600">one-time donation</p>
+              </CardHeader>
+              <CardContent className="text-center">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+                  <div className="flex items-center justify-center text-yellow-800 font-medium">
+                    <Coins className="w-4 h-4 mr-2" />
+                    Get ₹4,500 worth credits back
+                  </div>
+                  <p className="text-xs text-yellow-700 mt-1">9,000 credits monthly (₹0.50 per credit)</p>
+                </div>
+                <ul className="text-sm text-gray-600 space-y-3">
+                  <li>✓ All subscription benefits</li>
+                  <li>✓ 9,000 credits every month</li>
+                  <li>✓ Direct farmer impact</li>
+                  <li>✓ Tax benefits eligible</li>
+                  <li>✓ VIP customer status</li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+
+          {paymentOption && (
+            <Card className="border-0 shadow-xl">
+              <CardHeader>
+                <CardTitle className="text-xl font-bold text-gray-900 flex items-center">
+                  <CreditCard className="w-5 h-5 mr-2" />
+                  Payment Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handlePaymentSubmit} className="space-y-6">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-medium">Plan Selected:</span>
+                      <span className="font-bold">
+                        {paymentOption === 'subscription' ? 'Annual Subscription' : 'Farmer Support Donation'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-medium">Amount:</span>
+                      <span className="text-2xl font-bold text-green-600">
+                        ₹{paymentOption === 'subscription' ? '12,000' : '30,000'}
+                      </span>
+                    </div>
+                    {paymentOption === 'donation' && (
+                      <div className="flex justify-between items-center text-sm text-green-600">
+                        <span>Credits back:</span>
+                        <span>9,000 credits/month</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label>Payment Method</Label>
+                    <div className="grid grid-cols-3 gap-3 mt-2">
+                      {['UPI', 'Card', 'Net Banking'].map((method) => (
+                        <Button
+                          key={method}
+                          type="button"
+                          variant={formData.paymentMethod === method.toLowerCase().replace(' ', '_') ? 'default' : 'outline'}
+                          onClick={() => handleInputChange('paymentMethod', method.toLowerCase().replace(' ', '_'))}
+                          className="w-full"
+                        >
+                          {method}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {errors.payment && <p className="text-red-500 text-sm">{errors.payment}</p>}
+
+                  <div className="flex justify-between">
+                    <Button type="button" variant="outline" onClick={() => setStep('signup')}>
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back
+                    </Button>
+                    <Button type="submit" className="bg-gradient-to-r from-green-600 to-emerald-600" disabled={loading}>
+                      {loading ? 'Processing Payment...' : `Pay ₹${paymentOption === 'subscription' ? '12,000' : '30,000'}`}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          )}
+
+          {!paymentOption && (
+            <div className="text-center">
+              <Button variant="outline" onClick={() => setStep('signup')}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Signup
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -378,6 +579,14 @@ export default function AuthPage() {
               <p className="text-gray-600 text-center">
                 We've sent a 6-digit code to {formData.email}
               </p>
+              {userType === 'mitra' && paymentOption && (
+                <Alert className="mt-4">
+                  <CheckCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Payment successful! Complete verification to activate your {paymentOption === 'subscription' ? 'subscription' : 'donation benefits'}.
+                  </AlertDescription>
+                </Alert>
+              )}
             </CardHeader>
             <CardContent>
               <form onSubmit={handleOTPSubmit} className="space-y-6">
@@ -431,14 +640,19 @@ export default function AuthPage() {
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
                 Welcome to AgriValah!
               </h2>
-              <p className="text-gray-600 mb-8">
-                Your account has been successfully created. You can now access your dashboard and start exploring our platform.
+              <p className="text-gray-600 mb-6">
+                Your {userType} account has been successfully created.
+                {userType === 'mitra' && paymentOption === 'donation' && (
+                  <span className="block mt-2 text-green-600 font-medium">
+                    You'll receive 9,000 credits monthly!
+                  </span>
+                )}
               </p>
               <Button 
                 onClick={handleGoToDashboard}
                 className="bg-gradient-to-r from-green-600 to-emerald-600 w-full"
               >
-                Go to Dashboard
+                Go to {userType === 'mitra' ? 'Mitra' : 'Customer'} Dashboard
               </Button>
             </CardContent>
           </Card>
