@@ -930,7 +930,11 @@ export default function SellerSignupPage() {
                 </Alert>
 
                 <div className="flex justify-between">
-                  <Button variant="outline" onClick={() => setStep(2)}>
+                  <Button 
+                    type="button"
+                    variant="outline" 
+                    onClick={() => setStep(2)}
+                  >
                     <ArrowLeft className="w-4 h-4 mr-2" /> Back
                   </Button>
                   <Button type="submit" className="bg-gradient-to-r from-green-600 to-emerald-600" disabled={loading}>
