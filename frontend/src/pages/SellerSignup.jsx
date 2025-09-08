@@ -472,8 +472,13 @@ export default function SellerSignupPage() {
                 {errors.designation && <p className="text-red-500 text-sm">{errors.designation}</p>}
 
                 <div className="flex justify-end">
-                  <Button onClick={handleNext} className="bg-gradient-to-r from-green-600 to-emerald-600">
-                    Next Step <ArrowRight className="w-4 h-4 ml-2" />
+                  <Button 
+                    type="button"
+                    onClick={handleNext} 
+                    className="bg-gradient-to-r from-green-600 to-emerald-600"
+                    disabled={loading}
+                  >
+                    {loading ? 'Processing...' : 'Next Step'} <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </div>
               </form>
