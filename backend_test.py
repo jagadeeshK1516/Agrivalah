@@ -117,8 +117,8 @@ class AgriValahAPITester:
         }
         success, response = self.make_request('POST', 'auth/login', data)
         
-        if success and 'token' in response:
-            self.customer_token = response['token']
+        if success and ('token' in response or 'accessToken' in response):
+            self.customer_token = response.get('token') or response.get('accessToken')
             self.test_data['customer_id'] = response.get('user', {}).get('id')
             details = f"Token received, User ID: {self.test_data.get('customer_id')}"
         else:
