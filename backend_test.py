@@ -495,7 +495,7 @@ class AgriValahAPITester:
             
         upload_data = {
             "fileName": "test-image.jpg",
-            "fileType": "image/jpeg",
+            "contentType": "image/jpeg",
             "folder": "products"
         }
         
@@ -503,7 +503,7 @@ class AgriValahAPITester:
                                             upload_data, self.customer_token)
         
         if success:
-            details = f"Signed URL: {'Generated' if 'signedUrl' in response else 'Not found'}"
+            details = f"Signed URL: {'Generated' if 'signedUrl' in response.get('data', {}) else 'Not found'}"
         else:
             details = f"Response: {response}"
             
