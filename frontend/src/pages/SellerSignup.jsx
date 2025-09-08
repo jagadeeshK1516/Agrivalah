@@ -206,18 +206,12 @@ export default function SellerSignupPage() {
   const [sellerId, setSellerId] = React.useState(null);
 
   const handleNext = async () => {
-    console.log('handleNext called, step:', step);
-    console.log('formData:', formData);
-    console.log('selectedType:', selectedType);
-    
     if (step === 1) {
       const isValid = validateStep1();
-      console.log('validateStep1 result:', isValid);
       
       if (isValid) {
         setLoading(true);
         try {
-          console.log('Making API call to initSeller...');
           // Initialize seller registration
           const response = await sellerAPI.initSeller({
             designation: selectedType,
@@ -227,13 +221,10 @@ export default function SellerSignupPage() {
             confirmPassword: formData.confirmPassword
           });
           
-          console.log('API response:', response);
-          
           if (response.data.success) {
             setSellerId(response.data.data.userId);
             setStep(2);
             toast.success("Basic information saved!");
-            console.log('Moving to step 2');
           }
         } catch (error) {
           console.error('API error:', error);
@@ -248,9 +239,6 @@ export default function SellerSignupPage() {
         } finally {
           setLoading(false);
         }
-      } else {
-        console.log('Validation failed');
-      }
     } else if (step === 2 && validateStep2()) {
       setLoading(true);
       try {
