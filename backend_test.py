@@ -474,8 +474,12 @@ class AgriValahAPITester:
             self.log_test("Seller Verification", False, "Missing seller ID or admin token")
             return False
             
-        verify_data = {"status": "verified"}
-        success, response = self.make_request('PATCH', f'admin/sellers/{seller_id}/verify', 
+        verify_data = {
+            "sellerId": seller_id,
+            "action": "approve",
+            "notes": "Test approval"
+        }
+        success, response = self.make_request('POST', 'admin/verify-seller', 
                                             verify_data, self.admin_token)
         
         details = f"Verification: {'Success' if success else 'Failed'}"
