@@ -76,7 +76,7 @@ export default function DashboardPage() {
   const quickActions = user.role === 'mitra' ? [
     { title: "View Farmer Partners", icon: User, desc: "See your paired farmers", color: "from-green-500 to-emerald-600" },
     { title: "Monthly Kit Status", icon: Package, desc: "Track your deliveries", color: "from-blue-500 to-indigo-600" },
-    { title: "Investment Summary", icon: BarChart3, desc: "View ROI details", color: "from-purple-500 to-violet-600" },
+    { title: "Credits & Benefits", icon: BarChart3, desc: user.subscriptionType === 'donation' ? "View your 9K monthly credits" : "View subscription benefits", color: "from-purple-500 to-violet-600" },
     { title: "Support Tickets", icon: Bell, desc: "Customer support", color: "from-orange-500 to-red-600" }
   ] : [
     { title: "Browse Products", icon: ShoppingCart, desc: "Shop organic produce", color: "from-green-500 to-emerald-600" },
