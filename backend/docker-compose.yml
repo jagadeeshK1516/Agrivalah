@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # MongoDB service
+  mongodb:
+    image: mongo:7.0
+    container_name: agrivalah-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: agrivalah
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - agrivalah-network
+
+  # Redis service (for caching and sessions)
+  redis:
+    image: redis:7-alpine
+    container_name: agrivalah-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - agrivalah-network
+
+  # AgriValah API service
+  api:
+    build: .
+    container_name: agrivalah-api
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      NODE_ENV: development
+      MONGODB_URI: mongodb://admin:password123@mongodb:27017/agrivalah?authSource=admin
+      DB_NAME: agrivalah
+      JWT_SECRET: your_super_secret_jwt_key_change_in_production_123456789
+      JWT_REFRESH_SECRET: your_super_secret_refresh_key_change_in_production_987654321
+      CORS_ORIGINS: http://localhost:3000,http://localhost:5173
+      OTP_PROVIDER: mock
+      EMAIL_PROVIDER: mock
+    depends_on:
+      - mongodb
+      - redis
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - agrivalah-network
+
+volumes:
+  mongodb_data:
+  mongodb_config:
+  redis_data:
+
+networks:
+  agrivalah-network:
+    driver: bridge
