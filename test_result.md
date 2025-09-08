@@ -101,3 +101,49 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Fix the seller signup page navigation issue where 'Next Step' button is not working. Simplify backend to put sellers on waiting list with pending approval message instead of dashboard redirect. Mock OTP verification."
+
+frontend:
+  - task: "Fix seller type selection in SellerSignup.jsx"
+    implemented: true
+    working: false
+    file: "/app/frontend/src/pages/SellerSignup.jsx"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: false
+          agent: "main"
+          comment: "Seller type selection not setting formData.designation properly, causing validation error 'Please select your designation'"
+
+backend:
+  - task: "Simplify seller registration API to waiting list approach"
+    implemented: false
+    working: "NA"
+    file: "/app/backend/src/routes/sellers.js"
+    stuck_count: 0 
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Need to simplify backend to just store sellers in waiting list with pending status"
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Fix seller type selection in SellerSignup.jsx"
+    - "Simplify seller registration backend"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+    - agent: "main"
+      message: "Fixed seller type selection by adding console.log and error clearing. Now need to simplify backend and update success flow to show pending approval message."
