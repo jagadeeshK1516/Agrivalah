@@ -234,7 +234,7 @@ class AgriValahAPITester:
             "phone": "9876543210"
         }
         
-        success, response = self.make_request('PUT', 'users/profile', 
+        success, response = self.make_request('PUT', 'users/me', 
                                             update_data, self.customer_token)
         
         details = f"Update: {'Success' if success else 'Failed'}"
