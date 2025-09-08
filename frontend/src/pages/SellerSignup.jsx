@@ -21,7 +21,8 @@ import {
   ArrowLeft,
   ArrowRight,
   Upload,
-  MapPin
+  MapPin,
+  Clock
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -86,7 +87,6 @@ export default function SellerSignupPage() {
   const navigate = useNavigate();
   const [step, setStep] = React.useState(1);
   const [selectedType, setSelectedType] = React.useState('');
-  const [sellerId, setSellerId] = React.useState(null);
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
@@ -206,86 +206,14 @@ export default function SellerSignupPage() {
 
   const handleNext = async () => {
     if (step === 1 && validateStep1()) {
-      setLoading(true);
-      try {
-        const response = await sellerAPI.initSeller({
-          designation: selectedType,
-          name: formData.name, 
-          email: formData.email,
-          password: formData.password,
-          confirmPassword: formData.confirmPassword
-        });
-        
-        if (response.data.success) {
-          setSellerId(response.data.data.userId);
-          setStep(2);
-          toast.success("Basic information saved!");
-        }
-      } catch (error) {
-        const errorMessage = error.response?.data?.message || 'Something went wrong';
-        setErrors({ general: errorMessage });
-        toast.error(errorMessage);
-      } finally {
-        setLoading(false);
-      }
+      setStep(2);
     } else if (step === 2 && validateStep2()) {
       setLoading(true);
       try {
-        let response;
-        
-        // Call appropriate API based on seller type
-        if (selectedType === 'farmer') {
-          response = await sellerAPI.farmerDetails({
-            userId: sellerId,
-            acres: parseFloat(formData.acres),
-            soilType: formData.soilType,
-            cropsGrown: formData.cropsGrown,
-            cropDetails: formData.cropDetails,
-            location: formData.location,
-            pinCode: formData.pinCode,
-            language: formData.language || 'en'
-          });
-        } else if (selectedType === 'reseller') {
-          response = await sellerAPI.resellerDetails({
-            userId: sellerId,
-            businessName: formData.businessName,
-            businessType: formData.businessType,
-            businessAddress: formData.businessAddress,
-            gstNumber: formData.gstNumber,
-            preferredCategories: formData.preferredCategories || []
-          });
-        } else if (selectedType === 'startup') {
-          response = await sellerAPI.startupDetails({
-            userId: sellerId,
-            companyName: formData.companyName,
-            companyAddress: formData.companyAddress,
-            natureOfBusiness: formData.natureOfBusiness,
-            registrationNumber: formData.registrationNumber,
-            yearsInOperation: formData.yearsInOperation,
-            collaborationAreas: formData.collaborationAreas || []
-          });
-        } else if (selectedType === 'service') {
-          response = await sellerAPI.serviceProviderDetails({
-            userId: sellerId,
-            selectedServices: formData.selectedServices,
-            serviceArea: formData.serviceArea,
-            vehicleNumber: formData.vehicleNumber,
-            model: formData.model,
-            rentPerDay: formData.rentPerDay,
-            equipmentDetails: formData.equipmentDetails,
-            serviceCharges: formData.serviceCharges,
-            storageCapacity: formData.storageCapacity,
-            storageType: formData.storageType,
-            rentalModel: formData.rentalModel
-          });
-        }
-        
-        if (response?.data.success) {
-          // Send OTP
-          await sellerAPI.sendOTP({ emailOrPhone: formData.email });
-          setStep(3);
-          toast.success("Details saved! OTP sent to your email.");
-        }
+        // Send OTP first
+        await sellerAPI.sendOTP({ emailOrPhone: formData.email });
+        setStep(3);
+        toast.success("OTP sent to your email/phone!");
       } catch (error) {
         const errorMessage = error.response?.data?.message || 'Something went wrong';
         setErrors({ general: errorMessage });
@@ -305,15 +233,26 @@ export default function SellerSignupPage() {
 
     setLoading(true);
     try {
-      const response = await sellerAPI.verifyOTP({
-        userId: sellerId,
-        emailOrPhone: formData.email,
-        otp: formData.otp
-      });
+      // Submit complete registration data in one call
+      const registrationData = {
+        ...formData,
+        designation: selectedType
+      };
+
+      const response = await sellerAPI.register(registrationData);
       
       if (response.data.success) {
-        toast.success("Seller registration completed successfully!");
-        setStep(4); // Success step
+        // Mock OTP verification (always succeeds with 123456)
+        const otpResponse = await sellerAPI.verifyOTP({
+          userId: response.data.data.userId,
+          emailOrPhone: formData.email,
+          otp: formData.otp
+        });
+        
+        if (otpResponse.data.success) {
+          toast.success("Registration completed! You're on our waiting list.");
+          setStep(4); // Success step with waiting list message
+        }
       }
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Invalid OTP';
@@ -322,10 +261,6 @@ export default function SellerSignupPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleGoToDashboard = () => {
-    navigate(createPageUrl("SellerDashboard"));
   };
 
   const getProgressPercentage = () => {
@@ -458,6 +393,7 @@ export default function SellerSignupPage() {
                 </div>
 
                 {errors.designation && <p className="text-red-500 text-sm">{errors.designation}</p>}
+                {errors.general && <p className="text-red-500 text-sm">{errors.general}</p>}
 
                 <div className="flex justify-end">
                   <Button 
@@ -477,7 +413,7 @@ export default function SellerSignupPage() {
     );
   }
 
-  // Step 2: Role-specific Information
+  // Step 2: Role-specific Information (Same as before but simplified)
   if (step === 2) {
     return (
       <div className="min-h-screen py-16">
@@ -500,7 +436,7 @@ export default function SellerSignupPage() {
           <Card className="border-0 shadow-2xl">
             <CardContent className="p-8">
               <form className="space-y-6">
-                {/* Farmer Fields */}
+                {/* Same role-specific fields as before but keeping the existing UI */}
                 {selectedType === 'farmer' && (
                   <>
                     <div className="grid md:grid-cols-2 gap-6">
@@ -588,7 +524,7 @@ export default function SellerSignupPage() {
                   </>
                 )}
 
-                {/* Reseller Fields */}
+                {/* Similar blocks for reseller, startup, service... keeping them the same */}
                 {selectedType === 'reseller' && (
                   <>
                     <div className="grid md:grid-cols-2 gap-6">
@@ -660,7 +596,6 @@ export default function SellerSignupPage() {
                   </>
                 )}
 
-                {/* Startup Fields */}
                 {selectedType === 'startup' && (
                   <>
                     <div className="grid md:grid-cols-2 gap-6">
@@ -729,7 +664,6 @@ export default function SellerSignupPage() {
                   </>
                 )}
 
-                {/* Service Provider Fields */}
                 {selectedType === 'service' && (
                   <>
                     <div>
@@ -846,6 +780,8 @@ export default function SellerSignupPage() {
                   </>
                 )}
 
+                {errors.general && <p className="text-red-500 text-sm">{errors.general}</p>}
+
                 <div className="flex justify-between">
                   <Button 
                     type="button"
@@ -932,7 +868,18 @@ export default function SellerSignupPage() {
               </form>
 
               <div className="text-center mt-6">
-                <Button variant="ghost">
+                <Button variant="ghost" onClick={() => {
+                  setLoading(true);
+                  sellerAPI.sendOTP({ emailOrPhone: formData.email })
+                    .then(() => {
+                      toast.success("OTP resent successfully!");
+                      setLoading(false);
+                    })
+                    .catch(() => {
+                      toast.error("Failed to resend OTP");
+                      setLoading(false);
+                    });
+                }}>
                   Resend OTP
                 </Button>
               </div>
@@ -943,28 +890,39 @@ export default function SellerSignupPage() {
     );
   }
 
-  // Step 4: Success
+  // Step 4: Success - Waiting List Message
   if (step === 4) {
     return (
       <div className="min-h-screen py-16">
         <div className="max-w-md mx-auto px-4 sm:px-6 lg:px-8">
           <Card className="border-0 shadow-2xl text-center">
             <CardContent className="p-12">
-              <div className="w-20 h-20 bg-gradient-to-br from-green-600 to-emerald-600 rounded-full flex items-center justify-center text-white mx-auto mb-6">
-                <CheckCircle className="w-10 h-10" />
+              <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-yellow-600 rounded-full flex items-center justify-center text-white mx-auto mb-6">
+                <Clock className="w-10 h-10" />
               </div>
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Welcome to AgriValah!
+                Application Submitted!
               </h2>
-              <p className="text-gray-600 mb-8">
-                Your seller account has been successfully created. You can now access your dashboard and start managing your business.
+              <p className="text-gray-600 mb-6">
+                Thank you for your interest in joining AgriValah as a seller. Your application has been submitted successfully and is now in our waiting list for review.
               </p>
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
+                <p className="text-orange-800 text-sm font-medium">
+                  🕐 <strong>What's Next?</strong>
+                </p>
+                <p className="text-orange-700 text-sm mt-2">
+                  Our team will review your application and notify you via email/phone once approved. This typically takes 2-3 business days.
+                </p>
+              </div>
               <Button 
-                onClick={handleGoToDashboard}
+                onClick={() => navigate(createPageUrl("Home"))}
                 className="bg-gradient-to-r from-green-600 to-emerald-600 w-full"
               >
-                Go to Seller Dashboard
+                Back to Home
               </Button>
+              <p className="text-gray-500 text-sm mt-4">
+                Need help? Contact us at support@agrivalah.com
+              </p>
             </CardContent>
           </Card>
         </div>
