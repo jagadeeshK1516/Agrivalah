@@ -204,8 +204,6 @@ export default function SellerSignupPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const [sellerId, setSellerId] = React.useState(null);
-
   const handleNext = async () => {
     if (step === 1) {
       const isValid = validateStep1();
