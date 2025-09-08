@@ -164,9 +164,6 @@ export default function AuthPage() {
     } finally {
       setLoading(false);
     }
-      }));
-      setStep('success');
-    }, 1500);
   };
 
   const handleGoToDashboard = () => {
