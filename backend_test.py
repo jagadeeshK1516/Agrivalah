@@ -310,7 +310,7 @@ class AgriValahAPITester:
         success, response = self.make_request('GET', 'products?category=vegetables')
         
         if success:
-            products = response.get('products', [])
+            products = response.get('data', {}).get('products', [])
             details = f"Category filter results: {len(products)} products"
         else:
             details = f"Response: {response}"
