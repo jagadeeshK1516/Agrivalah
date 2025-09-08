@@ -36,6 +36,29 @@ const userSchema = new mongoose.Schema({
     enum: ['customer', 'mitra', 'farmer', 'reseller', 'agritech_startup', 'service_provider', 'admin'],
     default: 'customer'
   },
+  // Mitra specific fields
+  subscriptionType: {
+    type: String,
+    enum: ['subscription', 'donation'],
+    default: null
+  },
+  paymentAmount: {
+    type: Number,
+    default: 0
+  },
+  creditsEarned: {
+    type: Number,
+    default: 0
+  },
+  subscriptionStatus: {
+    type: String,
+    enum: ['active', 'inactive', 'expired'],
+    default: null
+  },
+  subscriptionDate: {
+    type: Date,
+    default: null
+  },
   verified: {
     type: Boolean,
     default: false
