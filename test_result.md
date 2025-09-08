@@ -136,6 +136,78 @@ backend:
           agent: "main"
           comment: "COMPLETED: Simplified backend with single /api/v1/sellers/register endpoint. Mock OTP endpoints working. All 4 seller types tested successfully. Backend 100% functional."
 
+  - task: "Customer signup with OTP verification"
+    implemented: true
+    working: true
+    file: "/app/backend/src/routes/auth.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "TESTED: Customer signup flow working perfectly. POST /api/v1/auth/signup creates customer account, sends mock OTP, and POST /api/v1/auth/verify-otp completes verification with JWT token generation. All validation and error handling working correctly."
+
+  - task: "Mitra signup with subscription (₹12,000)"
+    implemented: true
+    working: true
+    file: "/app/backend/src/routes/auth.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "TESTED: Mitra subscription signup fully functional. Correctly stores subscriptionType='subscription', paymentAmount=12000, and subscription metadata. OTP verification and JWT token generation working. All mitra-specific fields properly validated and returned."
+
+  - task: "Mitra signup with donation (₹30,000, 9000 credits)"
+    implemented: true
+    working: true
+    file: "/app/backend/src/routes/auth.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "TESTED: Mitra donation signup fully functional. Correctly stores subscriptionType='donation', paymentAmount=30000, creditsEarned=9000, and all donation metadata. OTP verification and account creation working perfectly with proper field validation."
+
+  - task: "Login flow for customers and mitras"
+    implemented: true
+    working: true
+    file: "/app/backend/src/routes/auth.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "TESTED: Login flow working for both customer and mitra accounts. POST /api/v1/auth/login validates credentials, checks verification status, and generates JWT tokens correctly. Invalid credentials properly rejected with 401 status."
+
+  - task: "JWT token validation and security"
+    implemented: true
+    working: true
+    file: "/app/backend/src/routes/auth.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "TESTED: JWT tokens generated correctly and can be used for authenticated requests. Token format and validation working properly. Authentication middleware functioning as expected."
+
+  - task: "Data integrity and validation"
+    implemented: true
+    working: true
+    file: "/app/backend/src/routes/auth.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+        - working: true
+          agent: "testing"
+          comment: "TESTED: All data validation working correctly. Duplicate signup prevention, required field validation, phone number support, invalid OTP handling, and mitra-specific field integrity all functioning properly. No data corruption or validation bypass issues found."
+
 metadata:
   created_by: "main_agent"
   version: "1.0"
