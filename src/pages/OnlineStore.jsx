@@ -16,23 +16,53 @@ function useScrollToTop() {
 }
 
 
-const products = [
-  { id: 1, name: "Organic Tomatoes", price: 60, unit: "kg", category: "Vegetables", farmer: "Ramesh K.", image: "https://images.unsplash.com/photo-1582284540020-8acbe03f6d20?w=400" },
-  { id: 2, name: "Organic Spinach", price: 40, unit: "bunch", category: "Vegetables", farmer: "Sunita D.", image: "https://images.unsplash.com/photo-1576045057995-568f588f21fb?w=400" },
-  { id: 3, name: "Basmati Rice", price: 150, unit: "kg", category: "Grains", farmer: "Kumar S.", image: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400" },
-  { id: 4, name: "Mustard Oil", price: 220, unit: "L", category: "Oils", farmer: "Agro Oils Ltd.", image: "https://images.unsplash.com/photo-1626380126294-a7b5a884489b?w=400" },
-];
-
 const categories = [
-  { name: "Vegetables", icon: Sprout },
-  { name: "Grains", icon: Wheat },
-  { name: "Oils", icon: Droplets },
-  { name: "Spices", icon: Utensils },
+  { name: "vegetables", icon: Sprout },
+  { name: "grains", icon: Wheat },
+  { name: "oils", icon: Droplets },
+  { name: "spices", icon: Utensils },
 ];
 
 export default function OnlineStorePage() {
   useScrollToTop();
   const [cartCount, setCartCount] = React.useState(0);
+  const [products, setProducts] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const [selectedCategory, setSelectedCategory] = React.useState('');
+
+  // Fetch products on component mount
+  React.useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await productAPI.getProducts({
+          search: searchTerm,
+          category: selectedCategory,
+          limit: 20
+        });
+        
+        if (response.data.success) {
+          setProducts(response.data.data.products);
+        }
+      } catch (error) {
+        console.error('Failed to fetch products:', error);
+        toast.error('Failed to load products');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, [searchTerm, selectedCategory]);
+
+  const handleSearch = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleCategoryFilter = (category) => {
+    setSelectedCategory(selectedCategory === category ? '' : category);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
