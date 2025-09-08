@@ -44,7 +44,15 @@ const router = express.Router();
  */
 router.post('/signup', async (req, res) => {
   try {
-    const { name, emailOrPhone, password, role = 'customer' } = req.body;
+    const { 
+      name, 
+      emailOrPhone, 
+      password, 
+      role = 'customer',
+      subscriptionType,
+      paymentAmount,
+      creditsEarned
+    } = req.body;
 
     // Basic validation
     if (!name || !emailOrPhone || !password) {
@@ -78,6 +86,15 @@ router.post('/signup', async (req, res) => {
       verified: false
     };
 
+    // Add mitra-specific data
+    if (role === 'mitra') {
+      userData.subscriptionType = subscriptionType; // 'subscription' or 'donation'
+      userData.paymentAmount = paymentAmount;
+      userData.creditsEarned = creditsEarned || 0;
+      userData.subscriptionStatus = 'active';
+      userData.subscriptionDate = new Date();
+    }
+
     if (isEmail) {
       userData.email = emailOrPhone.toLowerCase();
     } else {
@@ -102,11 +119,17 @@ router.post('/signup', async (req, res) => {
     res.json({
       ok: true,
       success: true,
-      message: "OTP sent",
+      message: role === 'mitra' ? "Payment processed successfully! OTP sent for verification." : "OTP sent",
       data: {
         userId: user._id,
         otpSent: true,
-        target: isEmail ? 'email' : 'phone'
+        target: isEmail ? 'email' : 'phone',
+        role: role,
+        ...(role === 'mitra' && {
+          subscriptionType: subscriptionType,
+          paymentAmount: paymentAmount,
+          creditsEarned: creditsEarned
+        })
       }
     });
 
