@@ -334,10 +334,12 @@ class AgriValahAPITester:
                 }
             ],
             "deliveryAddress": {
+                "name": "Test Customer",
+                "phone": "9876543210",
                 "street": "123 Test Street",
                 "city": "Test City",
                 "state": "Test State",
-                "pincode": "123456",
+                "pinCode": "123456",
                 "country": "India"
             },
             "paymentMethod": "cod"
