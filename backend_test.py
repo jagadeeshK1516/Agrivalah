@@ -211,11 +211,12 @@ class AgriValahAPITester:
             self.log_test("Get User Profile", False, "No customer token available")
             return False
             
-        success, response = self.make_request('GET', 'users/profile', 
+        success, response = self.make_request('GET', 'users/me', 
                                             token=self.customer_token)
         
         if success:
-            details = f"User: {response.get('name', 'N/A')}, Email: {response.get('email', 'N/A')}"
+            user_data = response.get('data', {})
+            details = f"User: {user_data.get('name', 'N/A')}, Email: {user_data.get('email', 'N/A')}"
         else:
             details = f"Response: {response}"
             
