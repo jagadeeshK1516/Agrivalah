@@ -405,33 +405,43 @@ class AgriValahAPITester:
     # Seller Registration Tests
     def test_seller_registration_farmer(self):
         """Test farmer seller registration"""
-        if not self.customer_token:
-            self.log_test("Seller Registration - Farmer", False, "No customer token available")
-            return False
-            
+        # Step 1: Initialize seller registration
         seller_data = {
-            "type": "farmer",
-            "businessName": "Test Farm",
-            "description": "Organic farming business",
-            "address": {
-                "street": "Farm Road 123",
-                "city": "Farm City",
-                "state": "Farm State",
-                "pincode": "123456",
-                "country": "India"
-            },
-            "documents": {
-                "aadhar": "123456789012",
-                "pan": "ABCDE1234F"
-            }
+            "designation": "farmer",
+            "name": "Test Farmer",
+            "email": f"farmer_{int(time.time())}@test.com",
+            "password": "Test@123",
+            "confirmPassword": "Test@123"
         }
         
-        success, response = self.make_request('POST', 'sellers/register', 
-                                            seller_data, self.customer_token, 201)
+        success, response = self.make_request('POST', 'sellers/init', seller_data)
+        
+        if not success:
+            self.log_test("Seller Registration - Farmer Init", False, f"Init failed: {response}")
+            return False
+            
+        user_id = response.get('data', {}).get('userId')
+        if not user_id:
+            self.log_test("Seller Registration - Farmer Init", False, "No user ID returned")
+            return False
+            
+        # Step 2: Complete farmer details
+        farmer_details = {
+            "userId": user_id,
+            "acres": 5.5,
+            "soilType": "loamy",
+            "cropsGrown": ["rice", "wheat"],
+            "cropDetails": "Organic farming practices",
+            "location": "Test Village",
+            "pinCode": "123456",
+            "language": "en"
+        }
+        
+        success, response = self.make_request('POST', 'sellers/step/farmer', farmer_details)
         
         if success:
-            self.test_data['seller_id'] = response.get('_id')
-            details = f"Farmer registration: {self.test_data['seller_id']}"
+            self.test_data['seller_id'] = response.get('data', {}).get('sellerId')
+            details = f"Farmer registration completed: {self.test_data['seller_id']}"
         else:
             details = f"Response: {response}"
             
