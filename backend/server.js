@@ -10,7 +10,7 @@ require('dotenv').config();
 
 const logger = require('./src/utils/logger');
 const errorHandler = require('./src/middlewares/errorHandler');
-const { swaggerDocs, swaggerUi } = require('./src/docs/swagger');
+const { swaggerDocs, swaggerUi, swaggerUiOptions } = require('./src/docs/swagger');
 
 // Import routes
 const authRoutes = require('./src/routes/auth');
@@ -20,6 +20,7 @@ const productRoutes = require('./src/routes/products');
 const orderRoutes = require('./src/routes/orders');
 const adminRoutes = require('./src/routes/admin');
 const uploadRoutes = require('./src/routes/upload');
+const searchRoutes = require('./src/routes/search');
 
 const app = express();
 const PORT = process.env.PORT || 8001;
