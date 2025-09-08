@@ -11,9 +11,10 @@ import time
 from datetime import datetime
 
 class SellerRegistrationTester:
-    def __init__(self, base_url="http://localhost:8001"):
-        self.base_url = base_url
-        self.api_base = f"{base_url}/api/v1"
+    def __init__(self):
+        # Use the production URL from frontend/.env
+        self.base_url = "https://react-seller-debug.preview.emergentagent.com"
+        self.api_base = f"{self.base_url}/api/v1"
         self.session = requests.Session()
         self.session.headers.update({'Content-Type': 'application/json'})
         
