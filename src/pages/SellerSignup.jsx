@@ -25,7 +25,9 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import {useEffect} from "react";
+import { useEffect } from "react";
+import { sellerAPI } from "@/api/apiClient";
+import { toast } from "sonner";
 
 function useScrollToTop() {
   useEffect(() => {
