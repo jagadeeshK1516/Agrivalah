@@ -84,12 +84,20 @@ router.post('/register', async (req, res) => {
     const user = new User(userData);
     await user.save();
 
+    // Map designation to correct sellerType enum values
+    const sellerTypeMapping = {
+      'farmer': 'farmer',
+      'reseller': 'reseller', 
+      'startup': 'agritech_startup',
+      'service': 'service_provider'
+    };
+
     // Create seller profile with all data in one go
     const sellerProfileData = {
       userId: user._id,
-      sellerType: designation,
-      kycStatus: 'pending_approval',
-      status: 'waiting_list',
+      sellerType: sellerTypeMapping[designation],
+      kycStatus: 'pending',
+      isActive: false, // Use isActive instead of status for waiting list
       applicationData: {
         basicInfo: {
           name,
