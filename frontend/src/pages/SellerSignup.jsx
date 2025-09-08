@@ -239,6 +239,7 @@ export default function SellerSignupPage() {
         } finally {
           setLoading(false);
         }
+      }
     } else if (step === 2 && validateStep2()) {
       setLoading(true);
       try {
