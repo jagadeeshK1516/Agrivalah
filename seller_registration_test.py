@@ -80,29 +80,46 @@ class SellerRegistrationTester:
             self.log_test("Backend Health Check", False, f"Error: {str(e)}")
             return False
 
-    def test_seller_init_farmer(self):
-        """Test seller initialization for farmer"""
+    def test_farmer_registration(self):
+        """Test farmer seller registration with complete data"""
         timestamp = int(time.time())
-        test_data = {
+        farmer_data = {
             "designation": "farmer",
-            "name": "Test Farmer",
-            "email": f"farmer_{timestamp}@test.com",
-            "password": "Test@123",
-            "confirmPassword": "Test@123"
+            "name": "John Farmer",
+            "email": f"john.farmer.{timestamp}@test.com",
+            "password": "password123",
+            "confirmPassword": "password123",
+            "acres": "10",
+            "soilType": "loamy",
+            "cropsGrown": ["Grains"],
+            "location": "Test Village",
+            "pinCode": "123456"
         }
         
-        success, response = self.make_request('POST', 'sellers/init', test_data)
+        success, response = self.make_request('POST', 'sellers/register', farmer_data)
         
         if success:
             data = response.get('data', {})
-            self.test_data['farmer_user_id'] = data.get('userId')
-            self.test_data['farmer_seller_id'] = data.get('sellerId')
-            self.test_data['farmer_email'] = test_data['email']
-            details = f"User ID: {self.test_data['farmer_user_id']}, Seller ID: {self.test_data['farmer_seller_id']}"
-        else:
-            details = f"Response: {response}"
+            user_id = data.get('userId')
+            seller_id = data.get('sellerId')
+            status = data.get('status')
             
-        self.log_test("Seller Init - Farmer", success, details)
+            # Store for later tests
+            self.test_data['farmer_user_id'] = user_id
+            self.test_data['farmer_seller_id'] = seller_id
+            self.test_data['farmer_email'] = farmer_data['email']
+            
+            details = f"User ID: {user_id}, Seller ID: {seller_id}, Status: {status}"
+            
+            # Verify correct status values
+            if status != 'pending_approval':
+                success = False
+                details += f" - Expected status 'pending_approval', got '{status}'"
+                
+        else:
+            details = f"Registration failed: {response}"
+            
+        self.log_test("Farmer Registration", success, details)
         return success
 
     def test_farmer_details(self):
