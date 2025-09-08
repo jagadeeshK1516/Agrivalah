@@ -82,27 +82,51 @@ export default function AuthPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const { login } = useAuth();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
+    
+    try {
       if (isLogin) {
-        // Simulate successful login
-        localStorage.setItem('agrivalah_user', JSON.stringify({
-          email: formData.email,
-          fullName: formData.fullName || 'User',
-          role: userType || 'customer'
-        }));
-        navigate(createPageUrl("Dashboard"));
+        // Login API call
+        const response = await authAPI.login({
+          emailOrPhone: formData.email,
+          password: formData.password
+        });
+        
+        if (response.data.success) {
+          login(response.data.user, {
+            accessToken: response.data.accessToken,
+            refreshToken: response.data.refreshToken
+          });
+          toast.success("Login successful!");
+          navigate(createPageUrl("Dashboard"));
+        }
       } else {
-        // Go to OTP step
-        setStep('otp');
+        // Signup API call
+        const response = await authAPI.signup({
+          name: formData.fullName,
+          emailOrPhone: formData.email,
+          password: formData.password,
+          role: userType
+        });
+        
+        if (response.data.success || response.data.ok) {
+          toast.success("OTP sent to your email/phone!");
+          setStep('otp');
+        }
       }
-    }, 1500);
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Something went wrong';
+      setErrors({ general: errorMessage });
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleOTPSubmit = (e) => {
