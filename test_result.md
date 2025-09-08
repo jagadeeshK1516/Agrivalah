@@ -216,7 +216,12 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Fix seller type selection in SellerSignup.jsx"
+    - "Customer signup with OTP verification"
+    - "Mitra signup with subscription (₹12,000)"
+    - "Mitra signup with donation (₹30,000, 9000 credits)"
+    - "Login flow for customers and mitras"
+    - "JWT token validation and security"
+    - "Data integrity and validation"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
