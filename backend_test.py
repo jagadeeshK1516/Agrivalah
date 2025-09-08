@@ -455,11 +455,11 @@ class AgriValahAPITester:
             self.log_test("Admin Dashboard Stats", False, "No admin token available")
             return False
             
-        success, response = self.make_request('GET', 'admin/dashboard/stats', 
+        success, response = self.make_request('GET', 'admin/stats', 
                                             token=self.admin_token)
         
         if success:
-            stats = response.get('stats', {})
+            stats = response.get('data', {}).get('overview', {})
             details = f"Users: {stats.get('totalUsers', 0)}, Orders: {stats.get('totalOrders', 0)}"
         else:
             details = f"Response: {response}"
