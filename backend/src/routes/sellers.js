@@ -173,8 +173,8 @@ router.post('/verify-otp', async (req, res) => {
     // Update seller profile
     const sellerProfile = await SellerProfile.findOne({ userId });
     if (sellerProfile) {
-      sellerProfile.kycStatus = 'pending_approval';
-      sellerProfile.status = 'waiting_list';
+      sellerProfile.kycStatus = 'pending';
+      sellerProfile.isActive = true; // Move from waiting list to active pending
       await sellerProfile.save();
     }
 
