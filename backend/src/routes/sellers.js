@@ -1,35 +1,34 @@
 const express = require('express');
 const User = require('../models/User');
 const SellerProfile = require('../models/SellerProfile');
-const { authenticateToken } = require('../middlewares/auth');
-const { sellerValidation } = require('../middlewares/validation');
-const otpService = require('../services/otpService');
 const logger = require('../utils/logger');
 
 const router = express.Router();
 
 /**
  * @swagger
- * /api/v1/sellers/init:
+ * /api/v1/sellers/register:
  *   post:
- *     summary: Initialize seller registration (Step 1)
+ *     summary: Register seller (simplified - adds to waiting list)
  *     tags: [Sellers]
  */
-router.post('/init', async (req, res) => {
+router.post('/register', async (req, res) => {
   try {
     const { 
       designation, 
       name, 
       email, 
-      password, 
-      confirmPassword 
+      password,
+      confirmPassword,
+      // Step 2 fields - all seller types
+      ...additionalData
     } = req.body;
 
     // Basic validation
     if (!designation || !name || !email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'All fields are required'
+        message: 'All basic fields are required'
       });
     }
 
@@ -71,7 +70,8 @@ router.post('/init', async (req, res) => {
       role: designation === 'farmer' ? 'farmer' : 
             designation === 'reseller' ? 'reseller' :
             designation === 'startup' ? 'agritech_startup' : 'service_provider',
-      verified: false
+      verified: false,
+      status: 'pending_approval' // Add status field
     };
 
     if (isEmail) {
@@ -84,300 +84,38 @@ router.post('/init', async (req, res) => {
     const user = new User(userData);
     await user.save();
 
-    // Create initial seller profile
-    const sellerProfile = new SellerProfile({
+    // Create seller profile with all data in one go
+    const sellerProfileData = {
       userId: user._id,
       sellerType: designation,
-      kycStatus: 'pending'
-    });
+      kycStatus: 'pending_approval',
+      status: 'waiting_list',
+      applicationData: {
+        basicInfo: {
+          name,
+          email,
+          designation
+        },
+        additionalData: additionalData // Store all additional form data
+      }
+    };
+
+    const sellerProfile = new SellerProfile(sellerProfileData);
     await sellerProfile.save();
 
     res.json({
       success: true,
-      message: 'Seller profile initialized',
+      message: 'Seller application submitted successfully. You have been added to our waiting list.',
       data: {
         userId: user._id,
         sellerId: sellerProfile._id,
-        sellerType: designation,
-        step: 1
+        status: 'pending_approval',
+        message: 'Your application is under review. We will notify you once approved.'
       }
     });
 
   } catch (error) {
-    logger.error('Seller init error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-});
-
-/**
- * @swagger
- * /api/v1/sellers/step/farmer:
- *   post:
- *     summary: Complete farmer-specific details (Step 2)
- *     tags: [Sellers]
- */
-router.post('/step/farmer', async (req, res) => {
-  try {
-    const {
-      userId,
-      acres,
-      soilType,
-      cropsGrown,
-      cropDetails,
-      location,
-      pinCode,
-      language
-    } = req.body;
-
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: 'User ID is required'
-      });
-    }
-
-    // Find seller profile
-    const sellerProfile = await SellerProfile.findOne({ userId });
-    if (!sellerProfile || sellerProfile.sellerType !== 'farmer') {
-      return res.status(404).json({
-        success: false,
-        message: 'Farmer profile not found'
-      });
-    }
-
-    // Update farmer details
-    sellerProfile.farmerDetails = {
-      acres: parseFloat(acres),
-      soilType: soilType?.toLowerCase(),
-      cropsGrown: Array.isArray(cropsGrown) ? cropsGrown : [],
-      cropDetails: cropDetails || '',
-      location: location?.trim(),
-      pinCode: pinCode?.trim(),
-      language: language || 'en'
-    };
-
-    await sellerProfile.save();
-
-    res.json({
-      success: true,
-      message: 'Farmer details saved',
-      data: {
-        userId,
-        sellerId: sellerProfile._id,
-        step: 2
-      }
-    });
-
-  } catch (error) {
-    logger.error('Farmer details error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-});
-
-/**
- * @swagger
- * /api/v1/sellers/step/reseller:
- *   post:
- *     summary: Complete reseller-specific details (Step 2)
- *     tags: [Sellers]
- */
-router.post('/step/reseller', async (req, res) => {
-  try {
-    const {
-      userId,
-      businessName,
-      businessType,
-      gstNumber,
-      businessAddress,
-      preferredCategories
-    } = req.body;
-
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: 'User ID is required'
-      });
-    }
-
-    const sellerProfile = await SellerProfile.findOne({ userId });
-    if (!sellerProfile || sellerProfile.sellerType !== 'reseller') {
-      return res.status(404).json({
-        success: false,
-        message: 'Reseller profile not found'
-      });
-    }
-
-    sellerProfile.resellerDetails = {
-      businessName: businessName?.trim(),
-      businessType: businessType,
-      gstNumber: gstNumber?.trim() || '',
-      businessAddress: businessAddress?.trim(),
-      preferredCategories: Array.isArray(preferredCategories) ? preferredCategories : []
-    };
-
-    await sellerProfile.save();
-
-    res.json({
-      success: true,
-      message: 'Reseller details saved',
-      data: {
-        userId,
-        sellerId: sellerProfile._id,
-        step: 2
-      }
-    });
-
-  } catch (error) {
-    logger.error('Reseller details error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-});
-
-/**
- * @swagger
- * /api/v1/sellers/step/startup:
- *   post:
- *     summary: Complete startup-specific details (Step 2)
- *     tags: [Sellers]
- */
-router.post('/step/startup', async (req, res) => {
-  try {
-    const {
-      userId,
-      companyName,
-      registrationNumber,
-      companyAddress,
-      natureOfBusiness,
-      yearsInOperation,
-      collaborationAreas
-    } = req.body;
-
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: 'User ID is required'
-      });
-    }
-
-    const sellerProfile = await SellerProfile.findOne({ userId });
-    if (!sellerProfile || sellerProfile.sellerType !== 'startup') {
-      return res.status(404).json({
-        success: false,
-        message: 'Startup profile not found'
-      });
-    }
-
-    sellerProfile.startupDetails = {
-      companyName: companyName?.trim(),
-      registrationNumber: registrationNumber?.trim() || '',
-      companyAddress: companyAddress?.trim(),
-      natureOfBusiness: natureOfBusiness,
-      yearsInOperation: parseInt(yearsInOperation) || 0,
-      collaborationAreas: Array.isArray(collaborationAreas) ? collaborationAreas : []
-    };
-
-    await sellerProfile.save();
-
-    res.json({
-      success: true,
-      message: 'Startup details saved',
-      data: {
-        userId,
-        sellerId: sellerProfile._id,
-        step: 2
-      }
-    });
-
-  } catch (error) {
-    logger.error('Startup details error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-});
-
-/**
- * @swagger
- * /api/v1/sellers/step/service-provider:
- *   post:
- *     summary: Complete service provider details (Step 2)
- *     tags: [Sellers]
- */
-router.post('/step/service-provider', async (req, res) => {
-  try {
-    const {
-      userId,
-      selectedServices,
-      vehicleNumber,
-      model,
-      rentPerDay,
-      serviceArea,
-      equipmentDetails,
-      capacity,
-      serviceCharges,
-      storageCapacity,
-      storageType,
-      rentalModel
-    } = req.body;
-
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: 'User ID is required'
-      });
-    }
-
-    const sellerProfile = await SellerProfile.findOne({ userId });
-    if (!sellerProfile || sellerProfile.sellerType !== 'service') {
-      return res.status(404).json({
-        success: false,
-        message: 'Service provider profile not found'
-      });
-    }
-
-    sellerProfile.serviceDetails = {
-      selectedServices: Array.isArray(selectedServices) ? selectedServices : [],
-      serviceArea: serviceArea?.trim() || '',
-      tractorServices: {
-        vehicleNumber: vehicleNumber?.trim() || '',
-        model: model?.trim() || '',
-        rentPerDay: parseInt(rentPerDay) || 0
-      },
-      equipmentServices: {
-        equipmentDetails: equipmentDetails?.trim() || '',
-        serviceCharges: serviceCharges?.trim() || ''
-      },
-      storageServices: {
-        storageCapacity: storageCapacity?.trim() || '',
-        storageType: storageType || '',
-        rentalModel: rentalModel?.trim() || ''
-      }
-    };
-
-    await sellerProfile.save();
-
-    res.json({
-      success: true,
-      message: 'Service provider details saved',
-      data: {
-        userId,
-        sellerId: sellerProfile._id,
-        step: 2
-      }
-    });
-
-  } catch (error) {
-    logger.error('Service provider details error:', error);
+    logger.error('Seller registration error:', error);
     res.status(500).json({
       success: false,
       message: 'Internal server error'
@@ -389,7 +127,7 @@ router.post('/step/service-provider', async (req, res) => {
  * @swagger
  * /api/v1/sellers/verify-otp:
  *   post:
- *     summary: Verify OTP and complete seller registration
+ *     summary: Mock OTP verification (always returns success)
  *     tags: [Sellers]
  */
 router.post('/verify-otp', async (req, res) => {
@@ -403,16 +141,15 @@ router.post('/verify-otp', async (req, res) => {
       });
     }
 
-    // Verify OTP
-    const otpResult = await otpService.verifyOTP(emailOrPhone, otp, 'signup');
-    if (!otpResult.success) {
+    // Mock OTP verification - always accept 123456
+    if (otp !== '123456') {
       return res.status(400).json({
         success: false,
-        message: otpResult.message
+        message: 'Invalid OTP. Use 123456 for demo.'
       });
     }
 
-    // Find and verify user
+    // Find user
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({
@@ -421,24 +158,26 @@ router.post('/verify-otp', async (req, res) => {
       });
     }
 
-    // Mark user as verified
+    // Mark user as verified but still pending approval
     user.verified = true;
     await user.save();
 
     // Update seller profile
     const sellerProfile = await SellerProfile.findOne({ userId });
     if (sellerProfile) {
-      sellerProfile.kycStatus = 'under_review';
+      sellerProfile.kycStatus = 'pending_approval';
+      sellerProfile.status = 'waiting_list';
       await sellerProfile.save();
     }
 
     res.json({
       success: true,
-      message: 'Seller registration completed successfully',
+      message: 'OTP verified successfully! Your application is in our waiting list for approval.',
       data: {
         userId: user._id,
         verified: true,
-        kycStatus: 'under_review'
+        status: 'waiting_list',
+        message: 'We have received your complete application. Our team will review it and notify you once approved.'
       }
     });
 
@@ -447,6 +186,39 @@ router.post('/verify-otp', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Internal server error'
+    });
+  }
+});
+
+/**
+ * @swagger
+ * /api/v1/sellers/send-otp:
+ *   post:
+ *     summary: Mock send OTP (always returns success)
+ *     tags: [Sellers]
+ */
+router.post('/send-otp', async (req, res) => {
+  try {
+    const { emailOrPhone } = req.body;
+
+    if (!emailOrPhone) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email or phone is required'
+      });
+    }
+
+    // Mock OTP sending
+    res.json({
+      success: true,
+      message: 'OTP sent successfully! Use 123456 for demo.'
+    });
+
+  } catch (error) {
+    logger.error('Send seller OTP error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to send OTP'
     });
   }
 });
@@ -463,7 +235,7 @@ router.get('/:id', async (req, res) => {
     const { id } = req.params;
 
     const sellerProfile = await SellerProfile.findOne({ userId: id })
-      .populate('userId', 'name email phone role verified');
+      .populate('userId', 'name email phone role verified status');
 
     if (!sellerProfile) {
       return res.status(404).json({
@@ -482,48 +254,6 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Internal server error'
-    });
-  }
-});
-
-/**
- * @swagger
- * /api/v1/sellers/send-otp:
- *   post:
- *     summary: Send OTP for seller verification
- *     tags: [Sellers]
- */
-router.post('/send-otp', async (req, res) => {
-  try {
-    const { emailOrPhone } = req.body;
-
-    if (!emailOrPhone) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email or phone is required'
-      });
-    }
-
-    // Send OTP
-    const otpResult = await otpService.sendOTP(
-      emailOrPhone,
-      'signup',
-      {
-        userAgent: req.get('User-Agent'),
-        ipAddress: req.ip
-      }
-    );
-
-    res.json({
-      success: true,
-      message: 'OTP sent successfully'
-    });
-
-  } catch (error) {
-    logger.error('Send seller OTP error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to send OTP'
     });
   }
 });
