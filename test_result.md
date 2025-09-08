@@ -102,7 +102,7 @@
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
 
-user_problem_statement: "Fix the seller signup page navigation issue where 'Next Step' button is not working. Simplify backend to put sellers on waiting list with pending approval message instead of dashboard redirect. Mock OTP verification."
+user_problem_statement: "Test the updated authentication system with customer and mitra signup flows including OTP verification, subscription handling, and login functionality."
 
 frontend:
   - task: "Fix seller type selection in SellerSignup.jsx"
