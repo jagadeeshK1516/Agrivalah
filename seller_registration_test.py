@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Seller Registration Backend API Testing
-Tests the specific seller registration flow that the frontend is using
+Seller Registration Backend API Testing Suite
+Tests the simplified seller registration endpoints as requested
 """
 
 import requests
@@ -9,6 +9,7 @@ import json
 import sys
 import time
 from datetime import datetime
+from typing import Dict, Any, Optional
 
 class SellerRegistrationTester:
     def __init__(self):
@@ -40,7 +41,7 @@ class SellerRegistrationTester:
             self.failed_tests.append(f"{name}: {details}")
         print()
 
-    def make_request(self, method: str, endpoint: str, data: dict = None, 
+    def make_request(self, method: str, endpoint: str, data: Dict = None, 
                     expected_status: int = 200) -> tuple:
         """Make HTTP request and return success status and response"""
         url = f"{self.api_base}/{endpoint}"
@@ -71,22 +72,21 @@ class SellerRegistrationTester:
             success = response.status_code == 200
             if success:
                 data = response.json()
-                details = f"Status: {data.get('status')}, Uptime: {data.get('uptime', 0):.1f}s"
+                details = f"Backend healthy - Status: {data.get('status')}, Uptime: {data.get('uptime', 0):.1f}s"
             else:
-                details = f"Status: {response.status_code}"
-            self.log_test("Backend Health Check", success, details)
+                details = f"Health check failed - Status: {response.status_code}"
+            self.log_test("Backend Connectivity", success, details)
             return success
         except Exception as e:
-            self.log_test("Backend Health Check", False, f"Error: {str(e)}")
+            self.log_test("Backend Connectivity", False, f"Error: {str(e)}")
             return False
 
     def test_farmer_registration(self):
         """Test farmer seller registration with complete data"""
-        timestamp = int(time.time())
         farmer_data = {
             "designation": "farmer",
             "name": "John Farmer",
-            "email": f"john.farmer.{timestamp}@test.com",
+            "email": f"john.farmer.{int(time.time())}@test.com",
             "password": "password123",
             "confirmPassword": "password123",
             "acres": "10",
@@ -122,325 +122,354 @@ class SellerRegistrationTester:
         self.log_test("Farmer Registration", success, details)
         return success
 
-    def test_farmer_details(self):
-        """Test farmer details submission"""
-        if not self.test_data.get('farmer_user_id'):
-            self.log_test("Farmer Details", False, "No farmer user ID available")
-            return False
-            
-        farmer_data = {
-            "userId": self.test_data['farmer_user_id'],
-            "acres": 5.5,
-            "soilType": "loamy",
-            "cropsGrown": ["Grains", "Vegetables"],
-            "cropDetails": "Organic farming practices with sustainable methods",
-            "location": "Test Village, Test District",
-            "pinCode": "123456",
-            "language": "en"
+    def test_reseller_registration(self):
+        """Test reseller seller registration"""
+        reseller_data = {
+            "designation": "reseller",
+            "name": "Jane Reseller",
+            "email": f"jane.reseller.{int(time.time())}@test.com",
+            "password": "password123",
+            "confirmPassword": "password123",
+            "businessName": "Jane's Agri Business",
+            "gstNumber": "GST123456789",
+            "businessAddress": "123 Business Street",
+            "pinCode": "654321"
         }
         
-        success, response = self.make_request('POST', 'sellers/step/farmer', farmer_data)
+        success, response = self.make_request('POST', 'sellers/register', reseller_data)
         
         if success:
             data = response.get('data', {})
-            details = f"Step: {data.get('step')}, Seller ID: {data.get('sellerId')}"
-        else:
-            details = f"Response: {response}"
+            user_id = data.get('userId')
+            seller_id = data.get('sellerId')
+            status = data.get('status')
             
-        self.log_test("Farmer Details", success, details)
+            # Store for later tests
+            self.test_data['reseller_user_id'] = user_id
+            self.test_data['reseller_email'] = reseller_data['email']
+            
+            details = f"User ID: {user_id}, Seller ID: {seller_id}, Status: {status}"
+            
+            # Verify correct status values
+            if status != 'pending_approval':
+                success = False
+                details += f" - Expected status 'pending_approval', got '{status}'"
+                
+        else:
+            details = f"Registration failed: {response}"
+            
+        self.log_test("Reseller Registration", success, details)
         return success
 
-    def test_send_otp(self):
-        """Test sending OTP"""
-        if not self.test_data.get('farmer_email'):
-            self.log_test("Send OTP", False, "No farmer email available")
+    def test_startup_registration(self):
+        """Test startup seller registration"""
+        startup_data = {
+            "designation": "startup",
+            "name": "Tech Startup Founder",
+            "email": f"startup.founder.{int(time.time())}@test.com",
+            "password": "password123",
+            "confirmPassword": "password123",
+            "companyName": "AgriTech Innovations",
+            "foundingYear": "2020",
+            "teamSize": "5-10",
+            "fundingStage": "seed",
+            "businessModel": "B2B SaaS",
+            "pinCode": "560001"
+        }
+        
+        success, response = self.make_request('POST', 'sellers/register', startup_data)
+        
+        if success:
+            data = response.get('data', {})
+            user_id = data.get('userId')
+            seller_id = data.get('sellerId')
+            status = data.get('status')
+            
+            # Store for later tests
+            self.test_data['startup_user_id'] = user_id
+            self.test_data['startup_email'] = startup_data['email']
+            
+            details = f"User ID: {user_id}, Seller ID: {seller_id}, Status: {status}"
+            
+            # Verify correct status values
+            if status != 'pending_approval':
+                success = False
+                details += f" - Expected status 'pending_approval', got '{status}'"
+                
+        else:
+            details = f"Registration failed: {response}"
+            
+        self.log_test("Startup Registration", success, details)
+        return success
+
+    def test_service_registration(self):
+        """Test service provider registration"""
+        service_data = {
+            "designation": "service",
+            "name": "Service Provider",
+            "email": f"service.provider.{int(time.time())}@test.com",
+            "password": "password123",
+            "confirmPassword": "password123",
+            "serviceType": "consulting",
+            "experience": "5+ years",
+            "specialization": "Organic Farming",
+            "certifications": "Certified Organic Consultant",
+            "serviceArea": "Karnataka",
+            "pinCode": "560002"
+        }
+        
+        success, response = self.make_request('POST', 'sellers/register', service_data)
+        
+        if success:
+            data = response.get('data', {})
+            user_id = data.get('userId')
+            seller_id = data.get('sellerId')
+            status = data.get('status')
+            
+            # Store for later tests
+            self.test_data['service_user_id'] = user_id
+            self.test_data['service_email'] = service_data['email']
+            
+            details = f"User ID: {user_id}, Seller ID: {seller_id}, Status: {status}"
+            
+            # Verify correct status values
+            if status != 'pending_approval':
+                success = False
+                details += f" - Expected status 'pending_approval', got '{status}'"
+                
+        else:
+            details = f"Registration failed: {response}"
+            
+        self.log_test("Service Provider Registration", success, details)
+        return success
+
+    def test_duplicate_email_validation(self):
+        """Test duplicate email validation"""
+        # Try to register with the farmer's email again
+        farmer_email = self.test_data.get('farmer_email')
+        if not farmer_email:
+            self.log_test("Duplicate Email Validation", False, "No farmer email available from previous test")
+            return False
+            
+        duplicate_data = {
+            "designation": "farmer",
+            "name": "Another Farmer",
+            "email": farmer_email,
+            "password": "password123",
+            "confirmPassword": "password123",
+            "acres": "5",
+            "soilType": "clay",
+            "cropsGrown": ["Vegetables"],
+            "location": "Another Village",
+            "pinCode": "111111"
+        }
+        
+        success, response = self.make_request('POST', 'sellers/register', duplicate_data, 400)
+        
+        if success:
+            message = response.get('message', '')
+            details = f"Correctly rejected duplicate email: {message}"
+        else:
+            details = f"Failed to reject duplicate email: {response}"
+            
+        self.log_test("Duplicate Email Validation", success, details)
+        return success
+
+    def test_password_mismatch_validation(self):
+        """Test password mismatch validation"""
+        invalid_data = {
+            "designation": "farmer",
+            "name": "Test Farmer",
+            "email": f"test.mismatch.{int(time.time())}@test.com",
+            "password": "password123",
+            "confirmPassword": "different_password",
+            "acres": "5",
+            "soilType": "clay",
+            "cropsGrown": ["Vegetables"],
+            "location": "Test Village",
+            "pinCode": "111111"
+        }
+        
+        success, response = self.make_request('POST', 'sellers/register', invalid_data, 400)
+        
+        if success:
+            message = response.get('message', '')
+            details = f"Correctly rejected password mismatch: {message}"
+        else:
+            details = f"Failed to reject password mismatch: {response}"
+            
+        self.log_test("Password Mismatch Validation", success, details)
+        return success
+
+    def test_invalid_seller_type_validation(self):
+        """Test invalid seller type validation"""
+        invalid_data = {
+            "designation": "invalid_type",
+            "name": "Test User",
+            "email": f"test.invalid.{int(time.time())}@test.com",
+            "password": "password123",
+            "confirmPassword": "password123"
+        }
+        
+        success, response = self.make_request('POST', 'sellers/register', invalid_data, 400)
+        
+        if success:
+            message = response.get('message', '')
+            details = f"Correctly rejected invalid seller type: {message}"
+        else:
+            details = f"Failed to reject invalid seller type: {response}"
+            
+        self.log_test("Invalid Seller Type Validation", success, details)
+        return success
+
+    def test_send_otp_mock(self):
+        """Test mock OTP sending"""
+        farmer_email = self.test_data.get('farmer_email')
+        if not farmer_email:
+            self.log_test("Send OTP Mock", False, "No farmer email available from previous test")
             return False
             
         otp_data = {
-            "emailOrPhone": self.test_data['farmer_email']
+            "emailOrPhone": farmer_email
         }
         
         success, response = self.make_request('POST', 'sellers/send-otp', otp_data)
         
-        details = f"OTP sent to: {self.test_data['farmer_email']}"
-        if not success:
-            details = f"Response: {response}"
+        if success:
+            message = response.get('message', '')
+            details = f"OTP send response: {message}"
+        else:
+            details = f"OTP send failed: {response}"
             
-        self.log_test("Send OTP", success, details)
+        self.log_test("Send OTP Mock", success, details)
         return success
 
-    def test_verify_otp(self):
-        """Test OTP verification"""
-        if not self.test_data.get('farmer_user_id') or not self.test_data.get('farmer_email'):
-            self.log_test("Verify OTP", False, "Missing farmer user ID or email")
+    def test_verify_otp_mock_success(self):
+        """Test mock OTP verification with correct OTP"""
+        farmer_user_id = self.test_data.get('farmer_user_id')
+        farmer_email = self.test_data.get('farmer_email')
+        
+        if not farmer_user_id or not farmer_email:
+            self.log_test("Verify OTP Mock - Success", False, "Missing farmer data from previous test")
             return False
             
         verify_data = {
-            "userId": self.test_data['farmer_user_id'],
-            "emailOrPhone": self.test_data['farmer_email'],
-            "otp": "123456"  # Mock OTP
+            "userId": farmer_user_id,
+            "emailOrPhone": farmer_email,
+            "otp": "123456"  # Correct mock OTP
         }
         
         success, response = self.make_request('POST', 'sellers/verify-otp', verify_data)
         
         if success:
             data = response.get('data', {})
-            details = f"Verified: {data.get('verified')}, KYC Status: {data.get('kycStatus')}"
-        else:
-            details = f"Response: {response}"
+            verified = data.get('verified')
+            status = data.get('status')
+            message = response.get('message', '')
             
-        self.log_test("Verify OTP", success, details)
+            details = f"Verified: {verified}, Status: {status}, Message: {message}"
+            
+            # Verify correct status values
+            if status != 'waiting_list':
+                success = False
+                details += f" - Expected status 'waiting_list', got '{status}'"
+                
+        else:
+            details = f"OTP verification failed: {response}"
+            
+        self.log_test("Verify OTP Mock - Success", success, details)
         return success
 
-    def test_seller_init_reseller(self):
-        """Test seller initialization for reseller"""
-        timestamp = int(time.time())
-        test_data = {
-            "designation": "reseller",
-            "name": "Test Reseller",
-            "email": f"reseller_{timestamp}@test.com",
-            "password": "Test@123",
-            "confirmPassword": "Test@123"
-        }
+    def test_verify_otp_mock_failure(self):
+        """Test mock OTP verification with incorrect OTP"""
+        farmer_user_id = self.test_data.get('farmer_user_id')
+        farmer_email = self.test_data.get('farmer_email')
         
-        success, response = self.make_request('POST', 'sellers/init', test_data)
-        
-        if success:
-            data = response.get('data', {})
-            self.test_data['reseller_user_id'] = data.get('userId')
-            details = f"User ID: {self.test_data['reseller_user_id']}"
-        else:
-            details = f"Response: {response}"
-            
-        self.log_test("Seller Init - Reseller", success, details)
-        return success
-
-    def test_reseller_details(self):
-        """Test reseller details submission"""
-        if not self.test_data.get('reseller_user_id'):
-            self.log_test("Reseller Details", False, "No reseller user ID available")
+        if not farmer_user_id or not farmer_email:
+            self.log_test("Verify OTP Mock - Failure", False, "Missing farmer data from previous test")
             return False
             
-        reseller_data = {
-            "userId": self.test_data['reseller_user_id'],
-            "businessName": "Test Organic Store",
-            "businessType": "retail_shop",
-            "gstNumber": "07AABCU9603R1ZM",
-            "businessAddress": "123 Market Street, Test City, Test State - 123456",
-            "preferredCategories": ["Grocery", "Farm Produce"]
+        verify_data = {
+            "userId": farmer_user_id,
+            "emailOrPhone": farmer_email,
+            "otp": "wrong_otp"  # Incorrect OTP
         }
         
-        success, response = self.make_request('POST', 'sellers/step/reseller', reseller_data)
+        success, response = self.make_request('POST', 'sellers/verify-otp', verify_data, 400)
         
         if success:
-            data = response.get('data', {})
-            details = f"Step: {data.get('step')}, Seller ID: {data.get('sellerId')}"
+            message = response.get('message', '')
+            details = f"Correctly rejected wrong OTP: {message}"
         else:
-            details = f"Response: {response}"
+            details = f"Failed to reject wrong OTP: {response}"
             
-        self.log_test("Reseller Details", success, details)
-        return success
-
-    def test_seller_init_startup(self):
-        """Test seller initialization for startup"""
-        timestamp = int(time.time())
-        test_data = {
-            "designation": "startup",
-            "name": "Test Startup Founder",
-            "email": f"startup_{timestamp}@test.com",
-            "password": "Test@123",
-            "confirmPassword": "Test@123"
-        }
-        
-        success, response = self.make_request('POST', 'sellers/init', test_data)
-        
-        if success:
-            data = response.get('data', {})
-            self.test_data['startup_user_id'] = data.get('userId')
-            details = f"User ID: {self.test_data['startup_user_id']}"
-        else:
-            details = f"Response: {response}"
-            
-        self.log_test("Seller Init - Startup", success, details)
-        return success
-
-    def test_startup_details(self):
-        """Test startup details submission"""
-        if not self.test_data.get('startup_user_id'):
-            self.log_test("Startup Details", False, "No startup user ID available")
-            return False
-            
-        startup_data = {
-            "userId": self.test_data['startup_user_id'],
-            "companyName": "AgriTech Innovations Pvt Ltd",
-            "registrationNumber": "U01100DL2020PTC123456",
-            "companyAddress": "456 Tech Park, Innovation District, Test City - 110001",
-            "natureOfBusiness": "agri_saas",
-            "yearsInOperation": "3",
-            "collaborationAreas": []
-        }
-        
-        success, response = self.make_request('POST', 'sellers/step/startup', startup_data)
-        
-        if success:
-            data = response.get('data', {})
-            details = f"Step: {data.get('step')}, Seller ID: {data.get('sellerId')}"
-        else:
-            details = f"Response: {response}"
-            
-        self.log_test("Startup Details", success, details)
-        return success
-
-    def test_seller_init_service(self):
-        """Test seller initialization for service provider"""
-        timestamp = int(time.time())
-        test_data = {
-            "designation": "service",
-            "name": "Test Service Provider",
-            "email": f"service_{timestamp}@test.com",
-            "password": "Test@123",
-            "confirmPassword": "Test@123"
-        }
-        
-        success, response = self.make_request('POST', 'sellers/init', test_data)
-        
-        if success:
-            data = response.get('data', {})
-            self.test_data['service_user_id'] = data.get('userId')
-            details = f"User ID: {self.test_data['service_user_id']}"
-        else:
-            details = f"Response: {response}"
-            
-        self.log_test("Seller Init - Service Provider", success, details)
-        return success
-
-    def test_service_details(self):
-        """Test service provider details submission"""
-        if not self.test_data.get('service_user_id'):
-            self.log_test("Service Provider Details", False, "No service user ID available")
-            return False
-            
-        service_data = {
-            "userId": self.test_data['service_user_id'],
-            "selectedServices": ["Tractor Rental Services", "Cold Storage & Warehousing"],
-            "vehicleNumber": "HR-01-AB-1234",
-            "model": "Mahindra 575 DI",
-            "rentPerDay": "2500",
-            "serviceArea": "Test District and surrounding areas",
-            "equipmentDetails": "Well-maintained tractors with latest implements",
-            "serviceCharges": "Rs. 500 per hour",
-            "storageCapacity": "1000 tons",
-            "storageType": "mixed",
-            "rentalModel": "Rs. 50 per quintal per month"
-        }
-        
-        success, response = self.make_request('POST', 'sellers/step/service-provider', service_data)
-        
-        if success:
-            data = response.get('data', {})
-            details = f"Step: {data.get('step')}, Seller ID: {data.get('sellerId')}"
-        else:
-            details = f"Response: {response}"
-            
-        self.log_test("Service Provider Details", success, details)
+        self.log_test("Verify OTP Mock - Failure", success, details)
         return success
 
     def test_get_seller_profile(self):
         """Test getting seller profile"""
-        if not self.test_data.get('farmer_user_id'):
-            self.log_test("Get Seller Profile", False, "No farmer user ID available")
+        farmer_user_id = self.test_data.get('farmer_user_id')
+        
+        if not farmer_user_id:
+            self.log_test("Get Seller Profile", False, "No farmer user ID available from previous test")
             return False
             
-        success, response = self.make_request('GET', f'sellers/{self.test_data["farmer_user_id"]}')
+        success, response = self.make_request('GET', f'sellers/{farmer_user_id}')
         
         if success:
             data = response.get('data', {})
             seller_type = data.get('sellerType')
             kyc_status = data.get('kycStatus')
-            details = f"Type: {seller_type}, KYC: {kyc_status}"
+            status = data.get('status')
+            
+            details = f"Type: {seller_type}, KYC: {kyc_status}, Status: {status}"
+            
+            # Verify correct status values
+            expected_kyc = 'pending_approval'
+            expected_status = 'waiting_list'
+            
+            if kyc_status != expected_kyc or status != expected_status:
+                success = False
+                details += f" - Expected KYC: {expected_kyc}, Status: {expected_status}"
+                
         else:
-            details = f"Response: {response}"
+            details = f"Failed to get seller profile: {response}"
             
         self.log_test("Get Seller Profile", success, details)
         return success
 
-    def test_invalid_seller_type(self):
-        """Test invalid seller type validation"""
-        test_data = {
-            "designation": "invalid_type",
-            "name": "Test User",
-            "email": "invalid@test.com",
-            "password": "Test@123",
-            "confirmPassword": "Test@123"
-        }
-        
-        success, response = self.make_request('POST', 'sellers/init', test_data, 400)
-        
-        if success:
-            message = response.get('message', '')
-            details = f"Validation message: {message}"
-        else:
-            details = f"Expected 400 status but got: {response}"
-            
-        self.log_test("Invalid Seller Type Validation", success, details)
-        return success
-
-    def test_password_mismatch(self):
-        """Test password mismatch validation"""
-        test_data = {
-            "designation": "farmer",
-            "name": "Test User",
-            "email": "mismatch@test.com",
-            "password": "Test@123",
-            "confirmPassword": "Different@123"
-        }
-        
-        success, response = self.make_request('POST', 'sellers/init', test_data, 400)
-        
-        if success:
-            message = response.get('message', '')
-            details = f"Validation message: {message}"
-        else:
-            details = f"Expected 400 status but got: {response}"
-            
-        self.log_test("Password Mismatch Validation", success, details)
-        return success
-
     def run_all_tests(self):
         """Run all seller registration tests"""
-        print("🚀 Starting Seller Registration API Tests")
+        print("🚀 Starting Seller Registration Backend API Tests")
         print(f"🌐 Testing against: {self.base_url}")
         print("=" * 60)
         
-        # Basic connectivity
+        # Basic connectivity test
         print("📡 CONNECTIVITY TESTS")
         self.test_backend_connectivity()
         
+        # Registration tests for different seller types
+        print("🏪 SELLER REGISTRATION TESTS")
+        self.test_farmer_registration()
+        self.test_reseller_registration()
+        self.test_startup_registration()
+        self.test_service_registration()
+        
         # Validation tests
-        print("🔍 VALIDATION TESTS")
-        self.test_invalid_seller_type()
-        self.test_password_mismatch()
+        print("✅ VALIDATION TESTS")
+        self.test_duplicate_email_validation()
+        self.test_password_mismatch_validation()
+        self.test_invalid_seller_type_validation()
         
-        # Farmer registration flow
-        print("🌾 FARMER REGISTRATION FLOW")
-        self.test_seller_init_farmer()
-        self.test_farmer_details()
-        self.test_send_otp()
-        self.test_verify_otp()
+        # OTP tests
+        print("📱 OTP TESTS")
+        self.test_send_otp_mock()
+        self.test_verify_otp_mock_success()
+        self.test_verify_otp_mock_failure()
+        
+        # Profile retrieval test
+        print("👤 PROFILE TESTS")
         self.test_get_seller_profile()
-        
-        # Other seller types
-        print("🏪 RESELLER REGISTRATION FLOW")
-        self.test_seller_init_reseller()
-        self.test_reseller_details()
-        
-        print("🏢 STARTUP REGISTRATION FLOW")
-        self.test_seller_init_startup()
-        self.test_startup_details()
-        
-        print("🚚 SERVICE PROVIDER REGISTRATION FLOW")
-        self.test_seller_init_service()
-        self.test_service_details()
         
         # Print summary
         self.print_summary()
