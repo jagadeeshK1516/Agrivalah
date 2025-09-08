@@ -98,7 +98,7 @@ app.get('/health', (req, res) => {
 });
 
 // API Documentation
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs, swaggerUiOptions));
 
 // API Routes
 app.use('/api/v1/auth', authRoutes);
@@ -108,6 +108,7 @@ app.use('/api/v1/products', productRoutes);
 app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/upload', uploadRoutes);
+app.use('/api/v1/search', searchRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
