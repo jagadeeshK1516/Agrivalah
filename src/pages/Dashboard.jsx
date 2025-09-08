@@ -28,21 +28,38 @@ function useScrollToTop() {
 export default function DashboardPage() {
   useScrollToTop();
   const navigate = useNavigate();
-  const [user, setUser] = React.useState(null);
+  const { user, logout, isAuthenticated } = useAuth();
+  const [stats, setStats] = React.useState(null);
 
   React.useEffect(() => {
-    const userData = localStorage.getItem('agrivalah_user');
-    if (userData) {
-      setUser(JSON.parse(userData));
-    } else {
-      // Redirect to login if no user data
-      navigate(createPageUrl("Login"));
+    if (!isAuthenticated) {
+      navigate(createPageUrl("Auth"));
+      return;
     }
-  }, [navigate]);
+    
+    // Fetch user stats
+    const fetchStats = async () => {
+      try {
+        const response = await userAPI.getStats();
+        setStats(response.data.data);
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      }
+    };
+    
+    fetchStats();
+  }, [isAuthenticated, navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('agrivalah_user');
-    navigate(createPageUrl("Home"));
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate(createPageUrl("Home"));
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Still logout locally
+      logout();
+      navigate(createPageUrl("Home"));
+    }
   };
 
   if (!user) {
