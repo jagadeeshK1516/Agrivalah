@@ -12,7 +12,7 @@ from datetime import datetime
 from typing import Dict, Any, Optional
 
 class AgriValahAPITester:
-    def __init__(self, base_url="https://farmbackend.preview.emergentagent.com"):
+    def __init__(self, base_url="http://localhost:8001"):
         self.base_url = base_url
         self.api_base = f"{base_url}/api/v1"
         self.session = requests.Session()
