@@ -205,39 +205,29 @@ export default function SellerSignupPage() {
   };
 
   const handleNext = async () => {
-    if (step === 1) {
-      const isValid = validateStep1();
-      
-      if (isValid) {
-        setLoading(true);
-        try {
-          // Initialize seller registration
-          const response = await sellerAPI.initSeller({
-            designation: selectedType,
-            name: formData.name,
-            email: formData.email,
-            password: formData.password,
-            confirmPassword: formData.confirmPassword
-          });
-          
-          if (response.data.success) {
-            setSellerId(response.data.data.userId);
-            setStep(2);
-            toast.success("Basic information saved!");
-          }
-        } catch (error) {
-          console.error('API error:', error);
-          const errorMessage = error.response?.data?.message || 'Something went wrong';
-          setErrors({ general: errorMessage });
-          toast.error(errorMessage);
-          
-          // Show specific field errors
-          if (errorMessage.includes('already exists')) {
-            setErrors({ email: 'This email is already registered. Please use a different email.' });
-          }
-        } finally {
-          setLoading(false);
+    if (step === 1 && validateStep1()) {
+      setLoading(true);
+      try {
+        const response = await sellerAPI.initSeller({
+          designation: selectedType,
+          name: formData.name, 
+          email: formData.email,
+          password: formData.password,
+          confirmPassword: formData.confirmPassword
+        });
+        
+        if (response.data.success) {
+          setSellerId(response.data.data.userId);
+          setStep(2);
+          toast.success("Basic information saved!");
         }
+      } catch (error) {
+        const errorMessage = error.response?.data?.message || 'Something went wrong';
+        setErrors({ general: errorMessage });
+        toast.error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
     } else if (step === 2 && validateStep2()) {
       setLoading(true);
       try {
