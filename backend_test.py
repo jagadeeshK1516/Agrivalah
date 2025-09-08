@@ -329,11 +329,10 @@ class AgriValahAPITester:
             "items": [
                 {
                     "productId": self.test_data['product_id'],
-                    "quantity": 2,
-                    "price": 100
+                    "quantity": 2
                 }
             ],
-            "shippingAddress": {
+            "deliveryAddress": {
                 "street": "123 Test Street",
                 "city": "Test City",
                 "state": "Test State",
@@ -347,7 +346,7 @@ class AgriValahAPITester:
                                             self.customer_token, 201)
         
         if success:
-            self.test_data['order_id'] = response.get('_id')
+            self.test_data['order_id'] = response.get('data', {}).get('_id')
             details = f"Order created: {self.test_data['order_id']}"
         else:
             details = f"Response: {response}"
