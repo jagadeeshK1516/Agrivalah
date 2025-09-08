@@ -243,15 +243,15 @@ class AgriValahAPITester:
 
     def test_qr_code_generation(self):
         """Test QR code generation"""
-        if not self.customer_token:
-            self.log_test("QR Code Generation", False, "No customer token available")
+        if not self.customer_token or not self.test_data.get('customer_id'):
+            self.log_test("QR Code Generation", False, "No customer token or ID available")
             return False
             
-        success, response = self.make_request('GET', 'users/qr-code', 
-                                            token=self.customer_token)
+        user_id = self.test_data['customer_id']
+        success, response = self.make_request('GET', f'users/{user_id}/profile-qr?format=url')
         
         if success:
-            details = f"QR Code: {'Generated' if 'qrCode' in response else 'Not found'}"
+            details = f"QR Code: {'Generated' if 'profileUrl' in response.get('data', {}) else 'Not found'}"
         else:
             details = f"Response: {response}"
             
