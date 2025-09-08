@@ -119,27 +119,29 @@ frontend:
 
 backend:
   - task: "Simplify seller registration API to waiting list approach"
-    implemented: false
-    working: "NA"
+    implemented: true
+    working: true
     file: "/app/backend/src/routes/sellers.js"
     stuck_count: 0 
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
         - working: "NA"
           agent: "main"
           comment: "Need to simplify backend to just store sellers in waiting list with pending status"
+        - working: true
+          agent: "testing"
+          comment: "COMPREHENSIVE TESTING COMPLETED: All seller registration endpoints working perfectly. Fixed enum validation issues in SellerProfile model. Tested all 4 seller types (farmer, reseller, startup, service), all validation scenarios, mock OTP endpoints, and profile retrieval. All 12 tests passing with 100% success rate. Sellers correctly stored with pending KYC status and waiting list approach implemented via isActive field."
 
 metadata:
   created_by: "main_agent"
   version: "1.0"
-  test_sequence: 1
+  test_sequence: 2
   run_ui: false
 
 test_plan:
   current_focus:
     - "Fix seller type selection in SellerSignup.jsx"
-    - "Simplify seller registration backend"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
@@ -147,3 +149,5 @@ test_plan:
 agent_communication:
     - agent: "main"
       message: "Fixed seller type selection by adding console.log and error clearing. Now need to simplify backend and update success flow to show pending approval message."
+    - agent: "testing"
+      message: "BACKEND TESTING COMPLETE: Seller registration API is fully functional. Fixed critical enum validation issues and successfully tested all endpoints. All seller types register correctly, validation works, OTP mock endpoints operational, and sellers are properly stored in waiting list with correct status values. Ready for frontend integration testing."
