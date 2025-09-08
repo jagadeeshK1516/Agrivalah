@@ -361,11 +361,11 @@ class AgriValahAPITester:
             self.log_test("Get Orders", False, "No customer token available")
             return False
             
-        success, response = self.make_request('GET', 'orders', 
+        success, response = self.make_request('GET', 'orders/user', 
                                             token=self.customer_token)
         
         if success:
-            orders = response.get('orders', [])
+            orders = response.get('data', {}).get('orders', [])
             details = f"Found {len(orders)} orders"
         else:
             details = f"Response: {response}"
