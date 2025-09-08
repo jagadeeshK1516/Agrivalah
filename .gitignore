@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 
 .envfrontend/node_modules/.cache/default-development/0.pack
+-e 
+# Environment files
+*.env
+*.env.*
