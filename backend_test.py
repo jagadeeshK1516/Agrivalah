@@ -265,7 +265,7 @@ class AgriValahAPITester:
         success, response = self.make_request('GET', 'products')
         
         if success:
-            products = response.get('products', [])
+            products = response.get('data', {}).get('products', [])
             details = f"Found {len(products)} products"
             if products:
                 self.test_data['product_id'] = products[0].get('_id')
