@@ -48,7 +48,23 @@ export default function AuthPage() {
     password: '',
     confirmPassword: '',
     otp: '',
-    paymentMethod: 'upi' // Default payment method
+    paymentMethod: 'upi', // Default payment method
+    
+    // Mitra specific fields
+    mobile: '',
+    address: '',
+    pinCode: '',
+    idProof: '',
+    familySize: '',
+    dietPreference: '',
+    specialNeeds: '',
+    planChoice: '',
+    basketType: '',
+    deliveryPreference: '',
+    farmerPairing: '',
+    gstInvoice: '',
+    farmVisitInterest: '',
+    referralWillingness: ''
   });
   const [errors, setErrors] = React.useState({});
   const [loading, setLoading] = React.useState(false);
