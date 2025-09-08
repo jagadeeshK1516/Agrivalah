@@ -129,7 +129,7 @@ export default function AuthPage() {
     }
   };
 
-  const handleOTPSubmit = (e) => {
+  const handleOTPSubmit = async (e) => {
     e.preventDefault();
     if (!formData.otp || formData.otp.length !== 6) {
       setErrors({ otp: 'Please enter a valid 6-digit OTP' });
@@ -137,14 +137,33 @@ export default function AuthPage() {
     }
 
     setLoading(true);
-    // Simulate OTP verification
-    setTimeout(() => {
+    
+    try {
+      const response = await authAPI.verifyOTP({
+        emailOrPhone: formData.email,
+        otp: formData.otp
+      });
+      
+      if (response.data.success) {
+        login(response.data.user, {
+          accessToken: response.data.accessToken,
+          refreshToken: response.data.refreshToken
+        });
+        setStep('success');
+        toast.success("Account verified successfully!");
+        
+        // Redirect after showing success
+        setTimeout(() => {
+          navigate(createPageUrl("Dashboard"));
+        }, 2000);
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Invalid OTP';
+      setErrors({ otp: errorMessage });
+      toast.error(errorMessage);
+    } finally {
       setLoading(false);
-      // Save user data to localStorage
-      localStorage.setItem('agrivalah_user', JSON.stringify({
-        email: formData.email,
-        fullName: formData.fullName,
-        role: userType
+    }
       }));
       setStep('success');
     }, 1500);
