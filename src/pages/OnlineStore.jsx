@@ -5,7 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { ShoppingCart, Heart, Search, Filter, Sprout, Wheat, Droplets, Utensils, MessageCircle, QrCode } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import {useEffect} from "react";
+import { useEffect } from "react";
+import { productAPI } from '@/api/apiClient';
+import { toast } from "sonner";
 
 function useScrollToTop() {
   useEffect(() => {
