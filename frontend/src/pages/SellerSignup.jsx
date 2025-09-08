@@ -86,6 +86,7 @@ export default function SellerSignupPage() {
   const navigate = useNavigate();
   const [step, setStep] = React.useState(1);
   const [selectedType, setSelectedType] = React.useState('');
+  const [sellerId, setSellerId] = React.useState(null);
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
