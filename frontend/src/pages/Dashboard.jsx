@@ -160,16 +160,28 @@ export default function DashboardPage() {
               {user.role === 'mitra' ? (
                 <div className="grid md:grid-cols-3 gap-6">
                   <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">₹42,000</div>
-                    <div className="text-sm text-gray-600">Annual Investment</div>
+                    <div className="text-2xl font-bold text-green-600">
+                      ₹{user.subscriptionType === 'donation' ? '30,000' : '12,000'}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {user.subscriptionType === 'donation' ? 'Total Donation' : 'Annual Investment'}
+                    </div>
                   </div>
                   <div className="text-center p-4 bg-blue-50 rounded-lg">
-                    <div className="text-2xl font-bold text-blue-600">₹54,000</div>
-                    <div className="text-sm text-gray-600">Product Value</div>
+                    <div className="text-2xl font-bold text-blue-600">
+                      {user.subscriptionType === 'donation' ? '9,000' : '₹54,000'}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {user.subscriptionType === 'donation' ? 'Credits/Month' : 'Product Value'}
+                    </div>
                   </div>
                   <div className="text-center p-4 bg-purple-50 rounded-lg">
-                    <div className="text-2xl font-bold text-purple-600">₹12,000</div>
-                    <div className="text-sm text-gray-600">Net ROI</div>
+                    <div className="text-2xl font-bold text-purple-600">
+                      {user.subscriptionType === 'donation' ? '₹4,500' : '₹12,000'}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {user.subscriptionType === 'donation' ? 'Monthly Benefit' : 'Net ROI'}
+                    </div>
                   </div>
                 </div>
               ) : (
