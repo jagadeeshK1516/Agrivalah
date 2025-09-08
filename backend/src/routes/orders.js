@@ -117,55 +117,6 @@ router.post('/',
 
 /**
  * @swagger
- * /api/v1/orders/{id}:
- *   get:
- *     summary: Get order by ID
- *     tags: [Orders]
- *     security:
- *       - bearerAuth: []
- */
-router.get('/:id', authenticateToken, async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const order = await Order.findById(id)
-      .populate('buyerId', 'name email phone')
-      .populate('sellerId', 'name email phone')
-      .populate('items.productId', 'title images');
-
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: 'Order not found'
-      });
-    }
-
-    // Check if user is authorized to view this order
-    if (order.buyerId._id !== req.user._id && 
-        order.sellerId._id !== req.user._id && 
-        req.user.role !== 'admin') {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to view this order'
-      });
-    }
-
-    res.json({
-      success: true,
-      data: order
-    });
-
-  } catch (error) {
-    logger.error('Get order error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
-  }
-});
-
-/**
- * @swagger
  * /api/v1/orders/user:
  *   get:
  *     summary: Get current user's orders
