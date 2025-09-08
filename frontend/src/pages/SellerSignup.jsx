@@ -205,28 +205,45 @@ export default function SellerSignupPage() {
   };
 
   const handleNext = async () => {
-    if (step === 1 && validateStep1()) {
-      setLoading(true);
-      try {
-        const response = await sellerAPI.initSeller({
-          designation: selectedType,
-          name: formData.name, 
-          email: formData.email,
-          password: formData.password,
-          confirmPassword: formData.confirmPassword
-        });
-        
-        if (response.data.success) {
-          setSellerId(response.data.data.userId);
-          setStep(2);
-          toast.success("Basic information saved!");
+    console.log('handleNext called, current step:', step);
+    console.log('formData:', formData);
+    console.log('selectedType:', selectedType);
+    
+    if (step === 1) {
+      const isValid = validateStep1();
+      console.log('Validation result:', isValid);
+      console.log('Errors after validation:', errors);
+      
+      if (isValid) {
+        setLoading(true);
+        try {
+          console.log('Making API call...');
+          const response = await sellerAPI.initSeller({
+            designation: selectedType,
+            name: formData.name, 
+            email: formData.email,
+            password: formData.password,
+            confirmPassword: formData.confirmPassword
+          });
+          
+          console.log('API response:', response);
+          
+          if (response.data.success) {
+            setSellerId(response.data.data.userId);
+            setStep(2);
+            console.log('Moving to step 2');
+            toast.success("Basic information saved!");
+          }
+        } catch (error) {
+          console.error('API error:', error);
+          const errorMessage = error.response?.data?.message || 'Something went wrong';
+          setErrors({ general: errorMessage });
+          toast.error(errorMessage);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        const errorMessage = error.response?.data?.message || 'Something went wrong';
-        setErrors({ general: errorMessage });
-        toast.error(errorMessage);
-      } finally {
-        setLoading(false);
+      } else {
+        console.log('Validation failed, staying on step 1');
       }
     } else if (step === 2 && validateStep2()) {
       setLoading(true);
