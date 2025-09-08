@@ -9,10 +9,10 @@ const API = `${BACKEND_URL}/api/v1`;
 const Home = () => {
   const helloWorldApi = async () => {
     try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
+      const response = await axios.get(`${API}/products`);
+      console.log('Products loaded:', response.data.data.products.length, 'products');
     } catch (e) {
-      console.error(e, `errored out requesting / api`);
+      console.error(e, `errored out requesting products api`);
     }
   };
 
