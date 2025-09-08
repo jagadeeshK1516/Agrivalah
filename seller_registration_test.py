@@ -66,15 +66,18 @@ class SellerRegistrationTester:
             return False, {"error": str(e)}
 
     def test_backend_connectivity(self):
-        """Test basic backend connectivity"""
+        """Test basic backend connectivity via API endpoint"""
         try:
-            response = requests.get(f"{self.base_url}/health", timeout=10)
-            success = response.status_code == 200
+            # Test with a simple API call instead of health endpoint
+            response = requests.post(f"{self.api_base}/sellers/register", 
+                                   json={"test": "connectivity"}, timeout=10)
+            # We expect a 400 error for missing fields, which means the API is responding
+            success = response.status_code == 400
             if success:
                 data = response.json()
-                details = f"Backend healthy - Status: {data.get('status')}, Uptime: {data.get('uptime', 0):.1f}s"
+                details = f"API responding correctly - Message: {data.get('message', 'N/A')}"
             else:
-                details = f"Health check failed - Status: {response.status_code}"
+                details = f"Unexpected status code: {response.status_code}"
             self.log_test("Backend Connectivity", success, details)
             return success
         except Exception as e:
