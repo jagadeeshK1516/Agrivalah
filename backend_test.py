@@ -513,13 +513,11 @@ class AgriValahAPITester:
     # Search Tests
     def test_unified_search(self):
         """Test unified search functionality"""
-        search_data = {"query": "organic", "type": "all"}
-        success, response = self.make_request('POST', 'search', search_data)
+        success, response = self.make_request('GET', 'search?q=organic&type=all')
         
         if success:
-            results = response.get('results', {})
-            total = sum(len(v) if isinstance(v, list) else 0 for v in results.values())
-            details = f"Search results: {total} items found"
+            results = response.get('data', {}).get('results', [])
+            details = f"Search results: {len(results)} items found"
         else:
             details = f"Response: {response}"
             
