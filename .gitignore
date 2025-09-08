@@ -23,4 +23,4 @@ dist-ssr
 *.sln
 *.sw?
 
-.env
+.envfrontend/node_modules/.cache/default-development/0.pack

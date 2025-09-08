@@ -362,8 +362,13 @@ export default function SellerSignupPage() {
                         : 'border-gray-200 hover:border-green-300'
                     }`}
                     onClick={() => {
+                      console.log('Selecting seller type:', seller.type);
                       setSelectedType(seller.type);
                       setFormData(prev => ({ ...prev, designation: seller.type }));
+                      // Clear designation error if it exists
+                      if (errors.designation) {
+                        setErrors(prev => ({ ...prev, designation: '' }));
+                      }
                     }}
                   >
                     <CardHeader className="text-center">
