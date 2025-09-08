@@ -212,7 +212,7 @@ export default function SellerSignupPage() {
         // Initialize seller registration
         const response = await sellerAPI.initSeller({
           designation: selectedType,
-          name: formData.fullName,
+          name: formData.name,
           email: formData.email,
           password: formData.password,
           confirmPassword: formData.confirmPassword
