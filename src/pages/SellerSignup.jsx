@@ -203,11 +203,98 @@ export default function SellerSignupPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleNext = () => {
+  const [sellerId, setSellerId] = React.useState(null);
+
+  const handleNext = async () => {
     if (step === 1 && validateStep1()) {
-      setStep(2);
+      setLoading(true);
+      try {
+        // Initialize seller registration
+        const response = await sellerAPI.initSeller({
+          designation: selectedType,
+          name: formData.fullName,
+          email: formData.email,
+          password: formData.password,
+          confirmPassword: formData.confirmPassword
+        });
+        
+        if (response.data.success) {
+          setSellerId(response.data.data.userId);
+          setStep(2);
+          toast.success("Basic information saved!");
+        }
+      } catch (error) {
+        const errorMessage = error.response?.data?.message || 'Something went wrong';
+        setErrors({ general: errorMessage });
+        toast.error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
     } else if (step === 2 && validateStep2()) {
-      setStep(3); // OTP step
+      setLoading(true);
+      try {
+        let response;
+        
+        // Call appropriate API based on seller type
+        if (selectedType === 'farmer') {
+          response = await sellerAPI.farmerDetails({
+            userId: sellerId,
+            acres: parseFloat(formData.acres),
+            soilType: formData.soilType,
+            cropsGrown: formData.cropsGrown,
+            cropDetails: formData.cropDetails,
+            location: formData.location,
+            pinCode: formData.pinCode,
+            language: formData.language || 'en'
+          });
+        } else if (selectedType === 'reseller') {
+          response = await sellerAPI.resellerDetails({
+            userId: sellerId,
+            businessName: formData.businessName,
+            businessType: formData.businessType,
+            businessAddress: formData.businessAddress,
+            gstNumber: formData.gstNumber,
+            preferredCategories: formData.preferredCategories || []
+          });
+        } else if (selectedType === 'startup') {
+          response = await sellerAPI.startupDetails({
+            userId: sellerId,
+            companyName: formData.companyName,
+            companyAddress: formData.companyAddress,
+            natureOfBusiness: formData.natureOfBusiness,
+            registrationNumber: formData.registrationNumber,
+            yearsInOperation: formData.yearsInOperation,
+            collaborationAreas: formData.collaborationAreas || []
+          });
+        } else if (selectedType === 'service') {
+          response = await sellerAPI.serviceProviderDetails({
+            userId: sellerId,
+            selectedServices: formData.selectedServices,
+            serviceArea: formData.serviceArea,
+            vehicleNumber: formData.vehicleNumber,
+            model: formData.model,
+            rentPerDay: formData.rentPerDay,
+            equipmentDetails: formData.equipmentDetails,
+            serviceCharges: formData.serviceCharges,
+            storageCapacity: formData.storageCapacity,
+            storageType: formData.storageType,
+            rentalModel: formData.rentalModel
+          });
+        }
+        
+        if (response?.data.success) {
+          // Send OTP
+          await sellerAPI.sendOTP({ emailOrPhone: formData.email });
+          setStep(3);
+          toast.success("Details saved! OTP sent to your email.");
+        }
+      } catch (error) {
+        const errorMessage = error.response?.data?.message || 'Something went wrong';
+        setErrors({ general: errorMessage });
+        toast.error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
