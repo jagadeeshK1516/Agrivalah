@@ -285,7 +285,8 @@ class AgriValahAPITester:
         success, response = self.make_request('GET', f'products/{product_id}')
         
         if success:
-            details = f"Product: {response.get('name', 'N/A')}, Price: {response.get('price', 'N/A')}"
+            product_data = response.get('data', {})
+            details = f"Product: {product_data.get('title', 'N/A')}, Price: {product_data.get('price', 'N/A')}"
         else:
             details = f"Response: {response}"
             
