@@ -394,8 +394,9 @@ class AgriValahAPITester:
             self.log_test("Cancel Order", False, "Missing order ID or token")
             return False
             
-        success, response = self.make_request('DELETE', f'orders/{order_id}', 
-                                            token=self.customer_token)
+        cancel_data = {"reason": "Test cancellation"}
+        success, response = self.make_request('POST', f'orders/{order_id}/cancel', 
+                                            cancel_data, self.customer_token)
         
         details = f"Cancellation: {'Success' if success else 'Failed'}"
         self.log_test("Cancel Order", success, details)
