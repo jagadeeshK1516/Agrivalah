@@ -191,8 +191,8 @@ router.get('/:id', authenticateToken, async (req, res) => {
     }
 
     // Check if user is authorized to view this order
-    if (order.buyerId._id !== req.user._id && 
-        order.sellerId._id !== req.user._id && 
+    if (!order.buyerId._id.equals(req.user._id) && 
+        !order.sellerId._id.equals(req.user._id) && 
         req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
