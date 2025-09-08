@@ -361,6 +361,109 @@ export default function AuthPage() {
                   </div>
                 )}
 
+                {/* Additional Mitra fields */}
+                {!isLogin && userType === 'mitra' && (
+                  <>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="mobile">Mobile (WhatsApp linked)</Label>
+                        <Input
+                          id="mobile"
+                          type="text"
+                          placeholder="Enter mobile number"
+                          value={formData.mobile}
+                          onChange={(e) => handleInputChange('mobile', e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="pinCode">PIN Code</Label>
+                        <Input
+                          id="pinCode"
+                          type="text"
+                          placeholder="Enter PIN code"
+                          value={formData.pinCode}
+                          onChange={(e) => handleInputChange('pinCode', e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="address">Address</Label>
+                      <Textarea
+                        id="address"
+                        placeholder="Enter your complete address"
+                        value={formData.address}
+                        onChange={(e) => handleInputChange('address', e.target.value)}
+                      />
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="familySize">Family Size</Label>
+                        <Input
+                          id="familySize"
+                          type="number"
+                          placeholder="Number of family members"
+                          value={formData.familySize}
+                          onChange={(e) => handleInputChange('familySize', e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="dietPreference">Diet Preference</Label>
+                        <Select value={formData.dietPreference} onValueChange={(value) => handleInputChange('dietPreference', value)}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select diet preference" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="veg">Vegetarian</SelectItem>
+                            <SelectItem value="nonveg">Non-Vegetarian</SelectItem>
+                            <SelectItem value="mixed">Mixed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="specialNeeds">Special Needs</Label>
+                      <Input
+                        id="specialNeeds"
+                        placeholder="e.g. diabetic, oil-free, etc."
+                        value={formData.specialNeeds}
+                        onChange={(e) => handleInputChange('specialNeeds', e.target.value)}
+                      />
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Willing to pair with a farmer?</Label>
+                        <RadioGroup value={formData.farmerPairing} onValueChange={(value) => handleInputChange('farmerPairing', value)}>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="yes" id="pairing-yes" />
+                            <Label htmlFor="pairing-yes">Yes</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="no" id="pairing-no" />
+                            <Label htmlFor="pairing-no">No</Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+                      <div>
+                        <Label>Interest in farm visits?</Label>
+                        <RadioGroup value={formData.farmVisitInterest} onValueChange={(value) => handleInputChange('farmVisitInterest', value)}>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="yes" id="visit-yes" />
+                            <Label htmlFor="visit-yes">Yes</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="no" id="visit-no" />
+                            <Label htmlFor="visit-no">No</Label>
+                          </div>
+                        </RadioGroup>
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 <div>
                   <Label htmlFor="password">Password</Label>
                   <div className="relative">
