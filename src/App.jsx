@@ -1,11 +1,14 @@
 import './App.css'
-import Test from './Test'
+import Pages from "@/pages/index.jsx"
+import { Toaster } from "@/components/ui/toaster"
+import { AuthProvider } from "@/hooks/useAuth"
 
 function App() {
   return (
-    <div>
-      <Test />
-    </div>
+    <AuthProvider>
+      <Pages />
+      <Toaster />
+    </AuthProvider>
   )
 }
 
